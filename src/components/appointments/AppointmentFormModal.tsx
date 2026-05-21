@@ -33,6 +33,11 @@ export default function AppointmentFormModal({ prefill, onClose, onSaved }: Prop
     d.setMinutes(0, 0, 0);
     return d.toISOString().slice(0, 16);
   });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setHours(d.getHours() + 1, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
   const [name, setName] = useState(prefill?.name ?? "");
   const [phone, setPhone] = useState(prefill?.phone ?? "");
   const [address, setAddress] = useState(prefill?.address ?? "");
@@ -48,7 +53,7 @@ export default function AppointmentFormModal({ prefill, onClose, onSaved }: Prop
     await fetch("/api/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes }),
+      body: JSON.stringify({ date, endDate, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes }),
     });
     setSaving(false);
     setSaved(true);
@@ -71,7 +76,22 @@ export default function AppointmentFormModal({ prefill, onClose, onSaved }: Prop
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">Időpont</label>
-              <Input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="mt-1" />
+              <div className="flex items-center gap-2 mt-1">
+                <Input type="datetime-local" value={date} onChange={e => {
+                  setDate(e.target.value);
+                  // auto-set end to +1h if end hasn't been manually changed past start
+                  const start = new Date(e.target.value);
+                  const end = new Date(endDate);
+                  if (end <= start) {
+                    start.setHours(start.getHours() + 1);
+                    setEndDate(start.toISOString().slice(0, 16));
+                  }
+                }} className="flex-1" />
+                <span className="text-slate-400 text-sm flex-shrink-0">–</span>
+                <Input type="time" value={endDate.slice(11, 16)} onChange={e => {
+                  setEndDate(date.slice(0, 11) + e.target.value + ":00");
+                }} className="w-28" />
+              </div>
             </div>
 
             <div>

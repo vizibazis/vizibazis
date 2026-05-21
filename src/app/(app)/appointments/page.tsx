@@ -11,6 +11,7 @@ import AppointmentFormModal from "@/components/appointments/AppointmentFormModal
 interface Appointment {
   id: string;
   date: string;
+  endDate?: string;
   type: string;
   name: string;
   phone: string;
@@ -114,6 +115,7 @@ export default function AppointmentsPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold">
                           {new Date(a.date).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" })}
+                          {a.endDate && ` – ${new Date(a.endDate).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" })}`}
                         </span>
                         <Badge className={`${t.color} border-0 text-xs`}>{t.label}</Badge>
                       </div>
@@ -149,6 +151,7 @@ export default function AppointmentsPage() {
                 <p className="font-bold text-lg mt-2">{selected.name || "–"}</p>
                 <p className="text-sm text-slate-500">
                   {new Date(selected.date).toLocaleString("hu-HU", { dateStyle: "long", timeStyle: "short" })}
+                  {selected.endDate && ` – ${new Date(selected.endDate).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" })}`}
                 </p>
               </div>
               {canEdit && (

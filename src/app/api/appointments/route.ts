@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
   const appointment = await prisma.appointment.create({
     data: {
       date: new Date(body.date),
+      endDate: body.endDate ? new Date(body.endDate) : null,
       type: body.type ?? "CSERE", // AppointmentType enum value
       name: body.name ?? "",
       phone: body.phone ?? "",

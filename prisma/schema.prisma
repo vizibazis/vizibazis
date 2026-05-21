@@ -95,6 +95,7 @@ model MeroRecord {
 model Appointment {
   id         String          @id @default(cuid())
   date       DateTime
+  endDate    DateTime?
   type       AppointmentType @default(CSERE)
   name       String          @default("")
   phone      String          @default("")
