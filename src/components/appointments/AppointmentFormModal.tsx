@@ -1,0 +1,146 @@
+"use client";
+
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2, CheckCircle2 } from "lucide-react";
+
+interface Prefill {
+  name?: string;
+  phone?: string;
+  address?: string;
+  locationId?: string;
+}
+
+interface Props {
+  prefill?: Prefill;
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+const TYPES = [
+  { value: "CSERE", label: "Csere", color: "bg-blue-100 text-blue-700 border-blue-300" },
+  { value: "LEOLVAS", label: "Leolvasás", color: "bg-green-100 text-green-700 border-green-300" },
+  { value: "VIZSGAL", label: "Vizsgálat", color: "bg-orange-100 text-orange-700 border-orange-300" },
+  { value: "EGYEB", label: "Egyéb", color: "bg-slate-100 text-slate-700 border-slate-300" },
+];
+
+export default function AppointmentFormModal({ prefill, onClose, onSaved }: Props) {
+  const [type, setType] = useState("CSERE");
+  const [date, setDate] = useState(() => {
+    const d = new Date();
+    d.setMinutes(0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
+  const [name, setName] = useState(prefill?.name ?? "");
+  const [phone, setPhone] = useState(prefill?.phone ?? "");
+  const [address, setAddress] = useState(prefill?.address ?? "");
+  const [locationId, setLocationId] = useState(prefill?.locationId ?? "");
+  const [quantity, setQuantity] = useState(1);
+  const [price, setPrice] = useState("");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    await fetch("/api/appointments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes }),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => { onSaved(); }, 900);
+  }
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Új időpont</DialogTitle>
+        </DialogHeader>
+
+        {saved ? (
+          <div className="flex flex-col items-center py-8 gap-3">
+            <CheckCircle2 className="h-14 w-14 text-green-500" />
+            <p className="font-semibold text-lg">Mentve!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Időpont</label>
+              <Input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="mt-1" />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Típus</label>
+              <div className="flex gap-2 mt-1 flex-wrap">
+                {TYPES.map(t => (
+                  <button
+                    key={t.value}
+                    onClick={() => setType(t.value)}
+                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${type === t.value ? t.color + " border-2" : "bg-white border-slate-200 text-slate-600"}`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Ügyfél neve</label>
+                <Input value={name} onChange={e => setName(e.target.value)} className="mt-1" placeholder="Pl. Kiss János" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Telefon</label>
+                <Input value={phone} onChange={e => setPhone(e.target.value)} className="mt-1" placeholder="+36 30..." />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Cím</label>
+              <Input value={address} onChange={e => setAddress(e.target.value)} className="mt-1" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Helyazonosító</label>
+                <Input value={locationId} onChange={e => setLocationId(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Darabszám</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setQuantity(q => Math.max(1, q - 1))}>−</Button>
+                  <span className="w-8 text-center font-bold">{quantity}</span>
+                  <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setQuantity(q => q + 1)}>+</Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Ár (Ft)</label>
+                <Input type="number" value={price} onChange={e => setPrice(e.target.value)} className="mt-1" placeholder="0" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Megjegyzés</label>
+                <Input value={notes} onChange={e => setNotes(e.target.value)} className="mt-1" />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" onClick={onClose} className="flex-1">Mégse</Button>
+              <Button onClick={handleSave} disabled={saving} className="flex-1">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Mentés
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
