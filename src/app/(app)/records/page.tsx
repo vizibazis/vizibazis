@@ -81,45 +81,26 @@ export default function RecordsPage() {
   useEffect(() => { setPage(1); }, [search, meroFajta, ev]);
 
   const COLUMN_MAP: Record<string, string> = {
-    // Készülékhely
-    "készülékhely": "keszulekhely", "keszulekhely": "keszulekhely",
-    // Telefon
+    "keszulekhely": "keszulekhely",
     "telefon": "telefon", "telefon standard": "telefon",
-    // Mobil
     "mobil": "mobil", "mobil standard": "mobil",
-    // Email
     "e-mail": "email", "email": "email", "email standard": "email",
-    // Mobiltel ONUF
-    "mobiltelefon onuf": "mobiltelOnuf", "mobiltel. (onuf)": "mobiltelOnuf", "mobiltelonuf": "mobiltelOnuf",
-    // Irányítószám
-    "ir.szám": "irszam", "irszám": "irszam", "irszam": "irszam",
-    "fh irszám": "irszam", "fh irszam": "irszam",
-    // Helység
-    "helység": "helyseg", "helyseg": "helyseg",
-    "fh helység": "helyseg", "fh helyseg": "helyseg",
-    // Utca
+    "mobiltelefon onuf": "mobiltelOnuf", "mobiltel. (onuf)": "mobiltelOnuf",
+    "ir.szam": "irszam", "irszam": "irszam", "fh irszam": "irszam",
+    "helyseg": "helyseg", "fh helyseg": "helyseg",
     "utca": "utca", "fh utca": "utca",
-    // Házszám
-    "hsz.": "hazszam", "hazszam": "hazszam", "házszám": "hazszam",
-    "fh házszám": "hazszam", "fh hazszam": "hazszam",
-    // Épület
-    "épület": "epulet", "epulet": "epulet",
-    "fh épület": "epulet", "fh epulet": "epulet",
-    // Lépcsőház
-    "lépcsőház": "lepcsohaz", "lepcsohaz": "lepcsohaz",
-    "fh lépcsőház": "lepcsohaz", "fh lepcsohaz": "lepcsohaz",
-    // Emelet
+    "hazszam": "hazszam", "hsz.": "hazszam", "fh hazszam": "hazszam",
+    "epulet": "epulet", "fh epulet": "epulet",
+    "lepcsohaz": "lepcsohaz", "fh lepcsohaz": "lepcsohaz",
     "emelet": "emelet", "fh emelet": "emelet",
-    // Ajtó
-    "ajtó": "ajto", "ajto": "ajto", "fh ajtó": "ajto",
-    // Mérő adatok
-    "mérő fajta": "meroFajta", "merofajta": "meroFajta",
-    "gyári szám": "gyariSzam", "gyariszam": "gyariSzam",
-    "sorszám": "sorszam", "sorszam": "sorszam",
-    "hitelesítés éve": "hitelesitesEve", "hitelesiteseve": "hitelesitesEve",
-    "átmérő (dn)": "atmero", "átmérő": "atmero", "atmero": "atmero",
-    "főmérő kh": "fomeroKh", "fomerokh": "fomeroKh",
-    "anyagszám megnevezése": "anyagszamMegnevezese",
+    "ajto": "ajto", "fh ajto": "ajto",
+    "mero fajta": "meroFajta",
+    "gyari szam": "gyariSzam",
+    "sorszam": "sorszam",
+    "hitelesites eve": "hitelesitesEve",
+    "atmero (dn)": "atmero", "atmero": "atmero",
+    "fomero kh": "fomeroKh",
+    "anyagszam megnevezese": "anyagszamMegnevezese",
   };
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -141,8 +122,10 @@ export default function RecordsPage() {
       const batchId = `import_${Date.now()}`;
       const BATCH = 200;
       function normalizeCol(k: string) {
-        return k.normalize("NFC").toLowerCase()
-          .replace(/ /g, " ")
+        return k.normalize("NFD")
+          .replace(/[̀-ͯ]/g, "")
+          .toLowerCase()
+          .replace(/[   ]/g, " ")
           .replace(/_/g, " ")
           .trim()
           .replace(/\s+/g, " ");
@@ -162,22 +145,14 @@ export default function RecordsPage() {
         for (const [k, v] of Object.entries(row)) {
           const n = normalizeCol(k);
           const val = String(v ?? "").trim();
-          if (n === "családnév" || n === "csaladnev") { csaladnev = val; continue; }
-          if (n === "utónév" || n === "utonev") { utonev = val; continue; }
+          if (n === "csaladnev") { csaladnev = val; continue; }
+          if (n === "utonev") { utonev = val; continue; }
           const key = COLUMN_MAP[n];
           if (key) rec[key] = val;
         }
         if (csaladnev || utonev) rec.nev = [csaladnev, utonev].filter(Boolean).join(" ");
         return rec;
       });
-
-      // Debug: show first record's filled fields
-      const first = mapped[0];
-      const filled = Object.entries(first).filter(([k, v]) => v && k !== "importBatch").map(([k]) => k);
-      console.log("Első rekord kitöltött mezői:", filled.join(", "));
-      console.log("Első rekord:", first);
-      setImportMsg(`Debug: ${filled.length} mező töltött az első rekordban: ${filled.join(", ")}`);
-      await new Promise(r => setTimeout(r, 5000));
 
       let imported = 0;
       for (let i = 0; i < mapped.length; i += BATCH) {
