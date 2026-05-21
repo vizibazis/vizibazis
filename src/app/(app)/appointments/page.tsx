@@ -166,27 +166,40 @@ export default function AppointmentsPage() {
                 </div>
               )}
             </div>
-            {selected.phone && (
-              <a href={`tel:${selected.phone}`} className="flex items-center gap-2 text-sm text-green-600">
-                <Phone className="h-4 w-4" />{selected.phone}
-              </a>
-            )}
-            {selected.address && (
-              <div className="flex items-start gap-2 text-sm text-slate-600">
-                <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />{selected.address}
+            <div className="divide-y border rounded-lg text-sm">
+              {selected.phone && (
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <Phone className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                  <a href={`tel:${selected.phone}`} className="text-green-600">{selected.phone}</a>
+                </div>
+              )}
+              {selected.address && (
+                <div className="flex items-start gap-3 px-3 py-2">
+                  <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-slate-700">{selected.address}</span>
+                </div>
+              )}
+              {selected.locationId && (
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-slate-500">Készülékhely</span>
+                  <span className="font-medium text-slate-800">{selected.locationId}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-slate-500">Darabszám</span>
+                <span className="font-medium text-slate-800">{selected.quantity} db</span>
               </div>
-            )}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="bg-slate-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-slate-800">{selected.quantity}</p>
-                <p className="text-xs text-slate-500">darab</p>
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-slate-500">Ár</span>
+                <span className="font-medium text-slate-800">{selected.price.toLocaleString("hu-HU")} Ft</span>
               </div>
-              <div className="bg-slate-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-slate-800">{selected.price.toLocaleString("hu-HU")}</p>
-                <p className="text-xs text-slate-500">Ft</p>
-              </div>
+              {selected.notes && (
+                <div className="px-3 py-2">
+                  <p className="text-slate-500 text-xs mb-1">Megjegyzés</p>
+                  <p className="text-slate-700">{selected.notes}</p>
+                </div>
+              )}
             </div>
-            {selected.notes && <p className="text-sm text-slate-600 bg-slate-50 rounded-lg p-3">{selected.notes}</p>}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8">
