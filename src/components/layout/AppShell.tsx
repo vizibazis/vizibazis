@@ -37,8 +37,8 @@ export default function AppShell({ children, user }: AppShellProps) {
     : user.email?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <aside className="w-60 bg-white border-r flex flex-col">
+    <div className="flex h-screen bg-background">
+      <aside className="w-60 bg-card border-r flex flex-col">
         <div className="flex items-center gap-2 px-5 py-4 border-b">
           <Droplets className="h-6 w-6 text-blue-600" />
           <span className="text-lg font-bold text-blue-700">Vizibázis</span>
@@ -51,8 +51,8 @@ export default function AppShell({ children, user }: AppShellProps) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   pathname.startsWith(href)
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -69,8 +69,8 @@ export default function AppShell({ children, user }: AppShellProps) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   pathname.startsWith("/admin")
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 <ShieldCheck className="h-4 w-4" />
@@ -83,22 +83,22 @@ export default function AppShell({ children, user }: AppShellProps) {
         <div className="p-3 border-t relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors text-left"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-left"
           >
             <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-xs flex-shrink-0">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user.name ?? user.email}</p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 {user.role === "ADMIN" ? "Admin" : user.role === "EDITOR" ? "Szerkesztő" : "Olvasó"}
               </p>
             </div>
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
 
           {menuOpen && (
-            <div className="absolute bottom-14 left-3 right-3 bg-white border rounded-lg shadow-lg py-1 z-50">
+            <div className="absolute bottom-14 left-3 right-3 bg-card border rounded-lg shadow-lg py-1 z-50">
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"

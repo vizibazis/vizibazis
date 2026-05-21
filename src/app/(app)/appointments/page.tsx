@@ -23,10 +23,10 @@ interface Appointment {
 }
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  CSERE:        { label: "Csere",        color: "bg-blue-100 text-blue-700" },
-  UJRAINDITAS:  { label: "Újraindítás",  color: "bg-green-100 text-green-700" },
-  UJ_SZERZODES: { label: "Új szerződés", color: "bg-orange-100 text-orange-700" },
-  KIEPITES:     { label: "Kiépítés",     color: "bg-purple-100 text-purple-700" },
+  CSERE:        { label: "Csere",        color: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300" },
+  UJRAINDITAS:  { label: "Újraindítás",  color: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300" },
+  UJ_SZERZODES: { label: "Új szerződés", color: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300" },
+  KIEPITES:     { label: "Kiépítés",     color: "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300" },
 };
 
 const DAYS_LONG = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
@@ -77,12 +77,12 @@ export default function AppointmentsPage() {
       {/* Calendar panel */}
       <div className="flex-1 flex flex-col border-r">
         {/* Day nav */}
-        <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
           <Button variant="ghost" size="sm" onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() - 1); setCurrentDay(d); }}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="text-center">
-            <h2 className={`font-semibold ${isToday ? "text-blue-600" : "text-slate-700"}`}>
+            <h2 className={`font-semibold ${isToday ? "text-blue-600" : "text-foreground"}`}>
               {DAYS_LONG[currentDay.getDay()]}, {currentDay.getFullYear()}. {MONTHS[currentDay.getMonth()].toLowerCase()} {currentDay.getDate()}.
             </h2>
             {isToday && <span className="text-xs text-blue-500">Ma</span>}
@@ -95,9 +95,9 @@ export default function AppointmentsPage() {
         {/* Day list */}
         <div className="flex-1 overflow-auto p-4">
           {loading ? (
-            <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+            <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
           ) : appointments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <CalendarPlus className="h-10 w-10 mb-3" />
               <p className="text-sm">Nincs időpont erre a napra</p>
             </div>
@@ -131,7 +131,7 @@ export default function AppointmentsPage() {
 
         {/* New button */}
         {canEdit && (
-          <div className="p-4 border-t bg-white">
+          <div className="p-4 border-t bg-card">
             <Button onClick={() => setShowForm(true)} className="w-full">
               <CalendarPlus className="h-4 w-4 mr-2" />
               Új időpont
@@ -141,7 +141,7 @@ export default function AppointmentsPage() {
       </div>
 
       {/* Detail panel */}
-      <div className="w-80 bg-white overflow-auto">
+      <div className="w-80 bg-card overflow-auto">
         {selected ? (
           <div className="p-5 space-y-4">
             <div className="flex items-start justify-between">
@@ -150,7 +150,7 @@ export default function AppointmentsPage() {
                   {TYPE_LABELS[selected.type]?.label}
                 </Badge>
                 <p className="font-bold text-lg mt-2">{selected.name || "–"}</p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   {new Date(selected.date).toLocaleString("hu-HU", { dateStyle: "long", timeStyle: "short" })}
                   {selected.endDate && ` – ${new Date(selected.endDate).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" })}`}
                 </p>
@@ -169,40 +169,40 @@ export default function AppointmentsPage() {
             <div className="divide-y border rounded-lg text-sm">
               {selected.phone && (
                 <div className="flex items-center gap-3 px-3 py-2">
-                  <Phone className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                  <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <a href={`tel:${selected.phone}`} className="text-green-600">{selected.phone}</a>
                 </div>
               )}
               {selected.address && (
                 <div className="flex items-start gap-3 px-3 py-2">
-                  <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" />
+                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                   <span className="text-slate-700">{selected.address}</span>
                 </div>
               )}
               {selected.locationId && (
                 <div className="flex items-center justify-between px-3 py-2">
-                  <span className="text-slate-500">Készülékhely</span>
-                  <span className="font-medium text-slate-800">{selected.locationId}</span>
+                  <span className="text-muted-foreground">Készülékhely</span>
+                  <span className="font-medium text-foreground">{selected.locationId}</span>
                 </div>
               )}
               <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-slate-500">Darabszám</span>
-                <span className="font-medium text-slate-800">{selected.quantity} db</span>
+                <span className="text-muted-foreground">Darabszám</span>
+                <span className="font-medium text-foreground">{selected.quantity} db</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-slate-500">Ár</span>
-                <span className="font-medium text-slate-800">{selected.price.toLocaleString("hu-HU")} Ft</span>
+                <span className="text-muted-foreground">Ár</span>
+                <span className="font-medium text-foreground">{selected.price.toLocaleString("hu-HU")} Ft</span>
               </div>
               {selected.notes && (
                 <div className="px-3 py-2">
-                  <p className="text-slate-500 text-xs mb-1">Megjegyzés</p>
-                  <p className="text-slate-700">{selected.notes}</p>
+                  <p className="text-muted-foreground text-xs mb-1">Megjegyzés</p>
+                  <p className="text-foreground">{selected.notes}</p>
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8">
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
             <CalendarPlus className="h-10 w-10 mb-3" />
             <p className="text-sm text-center">Kattints egy időpontra a részletekért</p>
           </div>

@@ -67,17 +67,17 @@ export default function StatisticsPage() {
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Tab selector + worker dropdown */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+        <div className="flex gap-1 bg-muted p-1 rounded-lg">
           <button
             onClick={() => setTab("lista")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "lista" ? "bg-white shadow text-slate-900" : "text-slate-600 hover:text-slate-900"}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "lista" ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             <BarChart2 className="h-4 w-4" />
             Lista statisztika
           </button>
           <button
             onClick={() => setTab("hopto")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "hopto" ? "bg-white shadow text-slate-900" : "text-slate-600 hover:text-slate-900"}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "hopto" ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             <CalendarClock className="h-4 w-4" />
             HopTO statisztika
@@ -88,7 +88,7 @@ export default function StatisticsPage() {
           <select
             value={selectedWorker}
             onChange={e => setSelectedWorker(e.target.value)}
-            className="px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="px-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             <option value="">Összes szerelő</option>
             {workers.map(w => (
@@ -99,7 +99,7 @@ export default function StatisticsPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-slate-400" /></div>
+        <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
       ) : tab === "lista" && stats ? (
         <ListaStats stats={stats} />
       ) : apptStats ? (
@@ -169,9 +169,9 @@ function ListaStats({ stats }: { stats: Stats }) {
                 const max = stats.byHelyseg[0]?.count ?? 1;
                 return (
                   <div key={i} className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400 w-5 text-right">{i + 1}.</span>
+                    <span className="text-xs text-muted-foreground w-5 text-right">{i + 1}.</span>
                     <span className="text-sm w-36 truncate">{h.name}</span>
-                    <div className="flex-1 bg-slate-100 rounded-full h-2">
+                    <div className="flex-1 bg-muted rounded-full h-2">
                       <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(h.count / max) * 100}%` }} />
                     </div>
                     <span className="text-sm font-medium w-8 text-right">{h.count}</span>
@@ -235,9 +235,11 @@ function HoptoStats({ stats }: { stats: ApptStats }) {
 
 function StatCard({ title, value, color }: { title: string; value: number | string; color: string }) {
   const colors: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-700", red: "bg-red-50 text-red-700",
-    orange: "bg-orange-50 text-orange-700", green: "bg-green-50 text-green-700",
-    purple: "bg-purple-50 text-purple-700",
+    blue: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+    red: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
+    orange: "bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
+    green: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
+    purple: "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300",
   };
   return (
     <Card>

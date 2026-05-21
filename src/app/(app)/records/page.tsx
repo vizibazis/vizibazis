@@ -270,11 +270,11 @@ export default function RecordsPage() {
   return (
     <div className="flex h-full">
       {/* List panel */}
-      <div className="flex flex-col w-96 border-r bg-white">
+      <div className="flex flex-col w-96 border-r bg-card">
         {/* Header */}
         <div className="p-4 border-b space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="font-semibold text-slate-800">Mérők <span className="text-slate-400 font-normal text-sm">({total})</span></h1>
+            <h1 className="font-semibold text-foreground">Mérők <span className="text-muted-foreground font-normal text-sm">({total})</span></h1>
             {canEdit && (
               <>
                 <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
@@ -285,18 +285,18 @@ export default function RecordsPage() {
               </>
             )}
           </div>
-          {importMsg && <p className="text-xs text-slate-600">{importMsg}</p>}
+          {importMsg && <p className="text-xs text-muted-foreground">{importMsg}</p>}
           {importing && importProgress > 0 && (
-            <div className="w-full bg-slate-200 rounded-full h-1.5">
+            <div className="w-full bg-muted rounded-full h-1.5">
               <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{ width: `${importProgress}%` }} />
             </div>
           )}
           {/* Name search + filter/sort buttons */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <User className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+              <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input className="pl-8 h-9" placeholder="Keresés névben..." value={nameSearch} onChange={(e) => setNameSearch(e.target.value)} />
-              {nameSearch && <button onClick={() => setNameSearch("")} className="absolute right-2.5 top-2.5 text-slate-400"><X className="h-4 w-4" /></button>}
+              {nameSearch && <button onClick={() => setNameSearch("")} className="absolute right-2.5 top-2.5 text-muted-foreground"><X className="h-4 w-4" /></button>}
             </div>
             <Button size="sm" variant={showFilters ? "default" : "outline"} onClick={() => setShowFilters(v => !v)} className="h-9 px-3">
               <SlidersHorizontal className="h-4 w-4 mr-1" />Szűrők
@@ -311,7 +311,7 @@ export default function RecordsPage() {
             <div className="space-y-2 pt-1">
               {/* Lejárati év */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-20 flex-shrink-0">Lejárati év</span>
+                <span className="text-xs text-muted-foreground w-20 flex-shrink-0">Lejárati év</span>
                 <Select value={lejáratiEv} onValueChange={(v) => setLejáratiEv(v ?? "all")}>
                   <SelectTrigger className="h-8 flex-1 text-sm">
                     <SelectValue placeholder="Mind" />
@@ -326,28 +326,28 @@ export default function RecordsPage() {
               </div>
               {/* Cím */}
               <div className="relative">
-                <MapPin className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                <MapPin className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                 <Input className="pl-8 h-8 text-sm" placeholder="Cím keresése..." value={cimSearch} onChange={(e) => setCimSearch(e.target.value)} />
-                {cimSearch && <button onClick={() => setCimSearch("")} className="absolute right-2.5 top-2 text-slate-400"><X className="h-4 w-4" /></button>}
+                {cimSearch && <button onClick={() => setCimSearch("")} className="absolute right-2.5 top-2 text-muted-foreground"><X className="h-4 w-4" /></button>}
               </div>
               {/* Készülékhely */}
               <div className="relative">
-                <Gauge className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                <Gauge className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                 <Input className="pl-8 h-8 text-sm" placeholder="Készülékhely szám..." value={keszulekhely} onChange={(e) => setKeszulekhely(e.target.value)} />
-                {keszulekhely && <button onClick={() => setKeszulekhely("")} className="absolute right-2.5 top-2 text-slate-400"><X className="h-4 w-4" /></button>}
+                {keszulekhely && <button onClick={() => setKeszulekhely("")} className="absolute right-2.5 top-2 text-muted-foreground"><X className="h-4 w-4" /></button>}
               </div>
               {/* Mindenhol */}
               <div className="relative">
-                <Search className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                 <Input className="pl-8 h-8 text-sm" placeholder="Keresés mindenhol..." value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} />
-                {globalSearch && <button onClick={() => setGlobalSearch("")} className="absolute right-2.5 top-2 text-slate-400"><X className="h-4 w-4" /></button>}
+                {globalSearch && <button onClick={() => setGlobalSearch("")} className="absolute right-2.5 top-2 text-muted-foreground"><X className="h-4 w-4" /></button>}
               </div>
               {/* Típus chips */}
               {tipusGroups.length > 0 && (
                 <div>
                   <div className="flex items-center gap-1 mb-1.5">
-                    <Tag className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="text-xs text-slate-500">Típus</span>
+                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Típus</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {tipusGroups.map((g) => (
@@ -355,7 +355,7 @@ export default function RecordsPage() {
                         className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                           isTipusSelected(g)
                             ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
+                            : "bg-card text-muted-foreground border-border hover:border-blue-400"
                         }`}>
                         {g}
                       </button>
@@ -371,10 +371,10 @@ export default function RecordsPage() {
         <div className="flex-1 overflow-y-auto divide-y">
           {loading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : records.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <Gauge className="h-10 w-10 mb-3" />
               <p className="text-sm">Nincs rekord</p>
               <p className="text-xs">Importálj Excel fájlt</p>
@@ -384,13 +384,13 @@ export default function RecordsPage() {
               <button
                 key={r.id}
                 onClick={() => setSelected(r)}
-                className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors ${selected?.id === r.id ? "bg-blue-50 border-r-2 border-blue-500" : ""}`}
+                className={`w-full text-left px-4 py-3 hover:bg-muted transition-colors ${selected?.id === r.id ? "bg-blue-50 dark:bg-blue-950 border-r-2 border-blue-500" : ""}`}
               >
-                <p className="font-medium text-sm text-slate-900 truncate">{r.nev || "–"}</p>
+                <p className="font-medium text-sm text-foreground truncate">{r.nev || "–"}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className={`text-xs font-medium ${meroColor(r.meroFajta)}`}>{r.meroFajta || "–"}</span>
-                  <span className="text-xs text-slate-400">·</span>
-                  <span className="text-xs text-slate-500 truncate">{r.helyseg}</span>
+                  <span className="text-xs text-muted-foreground">·</span>
+                  <span className="text-xs text-muted-foreground truncate">{r.helyseg}</span>
                 </div>
                 {expiryStatus(r.hitelesitesEve)}
               </button>
@@ -400,7 +400,7 @@ export default function RecordsPage() {
 
         {/* Pagination */}
         {pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-2 border-t text-sm text-slate-600">
+          <div className="flex items-center justify-between px-4 py-2 border-t text-sm text-muted-foreground">
             <Button variant="ghost" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -417,7 +417,7 @@ export default function RecordsPage() {
         {selected ? (
           <RecordDetail record={selected} onAppointment={() => setApptTarget(selected)} />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400">
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <Gauge className="h-14 w-14 mb-4" />
             <p className="text-lg">Válasszon ki egy mérőt</p>
           </div>
@@ -453,7 +453,7 @@ function RecordDetail({ record, onAppointment }: { record: MeroRecord; onAppoint
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{record.nev || "Ismeretlen"}</h2>
+              <h2 className="text-xl font-bold text-foreground">{record.nev || "Ismeretlen"}</h2>
               <p className={`text-sm font-medium mt-1 ${meroColor}`}>{record.meroFajta}</p>
             </div>
             <Button onClick={onAppointment} size="sm">
@@ -496,7 +496,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
       <CardContent className="p-0">
         <div className="flex items-center gap-2 px-4 py-3 border-b text-blue-600">
           {icon}
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</span>
         </div>
         <div className="divide-y">{children}</div>
       </CardContent>
@@ -507,11 +507,11 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 function Row({ label, value, type, highlight }: { label: string; value: string; type?: "phone" | "email"; highlight?: string }) {
   return (
     <div className="flex items-center px-4 py-2.5 gap-4">
-      <span className="text-sm text-slate-500 w-36 flex-shrink-0">{label}</span>
+      <span className="text-sm text-muted-foreground w-36 flex-shrink-0">{label}</span>
       {value ? (
-        <span className={`text-sm flex-1 ${highlight ?? "text-slate-900"}`}>{value}</span>
+        <span className={`text-sm flex-1 ${highlight ?? "text-foreground"}`}>{value}</span>
       ) : (
-        <span className="text-sm text-slate-300 flex-1">–</span>
+        <span className="text-sm text-muted-foreground/50 flex-1">–</span>
       )}
       {type === "phone" && value && (
         <a href={`tel:${value}`} className="text-green-600 hover:text-green-700">
