@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
+import * as XLSX from "xlsx";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,7 @@ export default function RecordsPage() {
   const [selected, setSelected] = useState<MeroRecord | null>(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
+  const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [apptTarget, setApptTarget] = useState<MeroRecord | null>(null);
 
@@ -67,23 +69,81 @@ export default function RecordsPage() {
 
   useEffect(() => { setPage(1); }, [search, meroFajta]);
 
+  const COLUMN_MAP: Record<string, string> = {
+    "készülékhely": "keszulekhely", "keszulekhely": "keszulekhely",
+    "név": "nev", "nev": "nev", "name": "nev",
+    "telefon": "telefon", "mobil": "mobil",
+    "e-mail": "email", "email": "email",
+    "ir.szám": "irszam", "irszám": "irszam", "irszam": "irszam",
+    "helység": "helyseg", "helyseg": "helyseg",
+    "utca": "utca", "hsz.": "hazszam", "hazszam": "hazszam",
+    "épület": "epulet", "epulet": "epulet",
+    "lépcsőház": "lepcsohaz", "lepcsohaz": "lepcsohaz",
+    "emelet": "emelet", "ajtó": "ajto", "ajto": "ajto",
+    "mérő fajta": "meroFajta", "merofajta": "meroFajta",
+    "gyári szám": "gyariSzam", "gyariszam": "gyariSzam",
+    "sorszám": "sorszam", "sorszam": "sorszam",
+    "hitelesítés éve": "hitelesitesEve", "hitelesiteseve": "hitelesitesEve",
+    "átmérő (dn)": "atmero", "atmero": "atmero",
+    "főmérő kh": "fomeroKh", "fomerokh": "fomeroKh",
+    "anyagszám megnevezése": "anyagszamMegnevezese",
+  };
+
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setImporting(true);
-    setImportMsg("");
-    const fd = new FormData();
-    fd.append("file", file);
-    const res = await fetch("/api/records/import", { method: "POST", body: fd });
-    const data = await res.json();
-    setImporting(false);
-    if (res.ok) {
-      setImportMsg(`✓ ${data.imported} rekord importálva`);
-      fetch_();
-    } else {
-      setImportMsg(`Hiba: ${data.error}`);
-    }
+    setImportMsg("Fájl olvasása...");
+    setImportProgress(0);
     e.target.value = "";
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+
+      if (!rows.length) { setImportMsg("Üres fájl"); setImporting(false); return; }
+
+      const batchId = `import_${Date.now()}`;
+      const BATCH = 200;
+      const mapped = rows.map((row) => {
+        const rec: Record<string, string> = {
+          importBatch: batchId,
+          keszulekhely: "", nev: "", telefon: "", mobil: "", email: "",
+          mobiltelOnuf: "", irszam: "", helyseg: "", utca: "", hazszam: "",
+          epulet: "", lepcsohaz: "", emelet: "", ajto: "", meroFajta: "",
+          gyariSzam: "", sorszam: "", hitelesitesEve: "", atmero: "",
+          fomeroKh: "", anyagszamMegnevezese: "",
+        };
+        for (const [k, v] of Object.entries(row)) {
+          const key = COLUMN_MAP[k.toLowerCase().trim().replace(/\s+/g, " ")];
+          if (key) rec[key] = String(v ?? "").trim();
+        }
+        return rec;
+      });
+
+      let imported = 0;
+      for (let i = 0; i < mapped.length; i += BATCH) {
+        const chunk = mapped.slice(i, i + BATCH);
+        const res = await fetch("/api/records/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ records: chunk, batchId }),
+        });
+        if (!res.ok) { const d = await res.json(); setImportMsg(`Hiba: ${d.error}`); setImporting(false); return; }
+        imported += chunk.length;
+        setImportProgress(Math.round((imported / mapped.length) * 100));
+        setImportMsg(`Importálás... ${imported} / ${mapped.length}`);
+      }
+
+      setImportMsg(`✓ ${imported} rekord importálva`);
+      fetch_();
+    } catch (err) {
+      setImportMsg(`Hiba: ${String(err)}`);
+    }
+    setImporting(false);
+    setImportProgress(0);
   }
 
   const meroColor = (fajta: string) => {
@@ -123,6 +183,11 @@ export default function RecordsPage() {
             )}
           </div>
           {importMsg && <p className="text-xs text-slate-600">{importMsg}</p>}
+          {importing && importProgress > 0 && (
+            <div className="w-full bg-slate-200 rounded-full h-1.5">
+              <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{ width: `${importProgress}%` }} />
+            </div>
+          )}
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <Input
