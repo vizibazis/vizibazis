@@ -158,9 +158,36 @@ export default function RecordsPage() {
         return rec;
       });
 
+      // Deduplication: group by name + address, merge meter-specific fields
+      const PERSONAL = new Set(["nev", "telefon", "mobil", "email", "mobiltelOnuf", "irszam", "helyseg", "utca", "hazszam", "emelet", "ajto", "importBatch"]);
+      const METER = ["keszulekhely", "meroFajta", "gyariSzam", "sorszam", "hitelesitesEve", "atmero", "fomeroKh", "anyagszamMegnevezese"];
+
+      const groups = new Map<string, Record<string, string>>();
+      for (const rec of mapped) {
+        const key = [rec.nev, rec.helyseg, rec.utca, rec.hazszam, rec.emelet, rec.ajto]
+          .map(v => v.trim().toLowerCase()).join("|");
+        if (!key.replace(/\|/g, "").trim()) { groups.set(Math.random().toString(), rec); continue; }
+        if (!groups.has(key)) {
+          groups.set(key, { ...rec });
+        } else {
+          const base = groups.get(key)!;
+          // personal: fill empty fields from duplicate
+          for (const f of PERSONAL) {
+            if (!base[f] && rec[f]) base[f] = rec[f];
+          }
+          // meter: append unique non-empty values
+          for (const f of METER) {
+            if (!rec[f]) continue;
+            const existing = base[f] ? base[f].split(", ") : [];
+            if (!existing.includes(rec[f])) base[f] = [...existing, rec[f]].filter(Boolean).join(", ");
+          }
+        }
+      }
+      const deduped = [...groups.values()];
+
       let imported = 0;
-      for (let i = 0; i < mapped.length; i += BATCH) {
-        const chunk = mapped.slice(i, i + BATCH);
+      for (let i = 0; i < deduped.length; i += BATCH) {
+        const chunk = deduped.slice(i, i + BATCH);
         const res = await fetch("/api/records/import", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -168,11 +195,12 @@ export default function RecordsPage() {
         });
         if (!res.ok) { const d = await res.json(); setImportMsg(`Hiba: ${d.error}`); setImporting(false); return; }
         imported += chunk.length;
-        setImportProgress(Math.round((imported / mapped.length) * 100));
-        setImportMsg(`Importálás... ${imported} / ${mapped.length}`);
+        setImportProgress(Math.round((imported / deduped.length) * 100));
+        setImportMsg(`Importálás... ${imported} / ${deduped.length}`);
       }
 
-      setImportMsg(`✓ ${imported} rekord importálva`);
+      const dupes = mapped.length - deduped.length;
+      setImportMsg(`✓ ${imported} rekord importálva${dupes > 0 ? ` (${dupes} duplikátum összevonva)` : ""}`);
       fetch_();
     } catch (err) {
       setImportMsg(`Hiba: ${String(err)}`);
