@@ -20,10 +20,10 @@ interface Props {
 }
 
 const TYPES = [
-  { value: "CSERE", label: "Csere", color: "bg-blue-100 text-blue-700 border-blue-300" },
-  { value: "LEOLVAS", label: "Leolvasás", color: "bg-green-100 text-green-700 border-green-300" },
-  { value: "VIZSGAL", label: "Vizsgálat", color: "bg-orange-100 text-orange-700 border-orange-300" },
-  { value: "EGYEB", label: "Egyéb", color: "bg-slate-100 text-slate-700 border-slate-300" },
+  { value: "CSERE",        label: "Csere",          color: "bg-blue-100 text-blue-700 border-blue-300" },
+  { value: "UJRAINDITAS",  label: "Újraindítás",    color: "bg-green-100 text-green-700 border-green-300" },
+  { value: "UJ_SZERZODES", label: "Új szerződés",   color: "bg-orange-100 text-orange-700 border-orange-300" },
+  { value: "KIEPITES",     label: "Kiépítés",       color: "bg-purple-100 text-purple-700 border-purple-300" },
 ];
 
 export default function AppointmentFormModal({ prefill, onClose, onSaved }: Props) {

@@ -115,7 +115,7 @@ model Appointment {
 
 enum AppointmentType {
   CSERE
-  LEOLVAS
-  VIZSGAL
-  EGYEB
+  UJRAINDITAS
+  UJ_SZERZODES
+  KIEPITES
 }

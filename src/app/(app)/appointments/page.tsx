@@ -22,10 +22,10 @@ interface Appointment {
 }
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  CSERE:   { label: "Csere",      color: "bg-blue-100 text-blue-700" },
-  LEOLVAS: { label: "Leolvasás",  color: "bg-green-100 text-green-700" },
-  VIZSGAL: { label: "Vizsgálat",  color: "bg-orange-100 text-orange-700" },
-  EGYEB:   { label: "Egyéb",      color: "bg-slate-100 text-slate-600" },
+  CSERE:        { label: "Csere",        color: "bg-blue-100 text-blue-700" },
+  UJRAINDITAS:  { label: "Újraindítás",  color: "bg-green-100 text-green-700" },
+  UJ_SZERZODES: { label: "Új szerződés", color: "bg-orange-100 text-orange-700" },
+  KIEPITES:     { label: "Kiépítés",     color: "bg-purple-100 text-purple-700" },
 };
 
 const DAYS_LONG = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];

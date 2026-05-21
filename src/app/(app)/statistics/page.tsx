@@ -24,7 +24,7 @@ interface ApptStats {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  CSERE: "Csere", LEOLVAS: "Leolvasás", VIZSGAL: "Vizsgálat", EGYEB: "Egyéb"
+  CSERE: "Csere", UJRAINDITAS: "Újraindítás", UJ_SZERZODES: "Új szerződés", KIEPITES: "Kiépítés"
 };
 
 export default function StatisticsPage() {
