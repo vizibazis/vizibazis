@@ -1,10 +1,21 @@
-export { default } from "next-auth/middleware";
+import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
+
+export default auth((req) => {
+  const isLoggedIn = !!req.auth;
+  const { pathname } = req.nextUrl;
+
+  const isPublic = pathname.startsWith("/login") || pathname.startsWith("/api/auth") || pathname.startsWith("/api/test");
+
+  if (!isLoggedIn && !isPublic) {
+    return NextResponse.redirect(new URL("/login", req.nextUrl));
+  }
+  if (isLoggedIn && pathname === "/login") {
+    return NextResponse.redirect(new URL("/records", req.nextUrl));
+  }
+  return NextResponse.next();
+});
 
 export const config = {
-  matcher: [
-    "/records/:path*",
-    "/statistics/:path*",
-    "/appointments/:path*",
-    "/admin/:path*",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
