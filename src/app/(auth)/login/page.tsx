@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Droplets, Loader2, AlertCircle } from "lucide-react";
 
@@ -23,11 +23,12 @@ export default function LoginPage() {
       email,
       password,
       redirect: false,
+      callbackUrl: "/records",
     });
     setLoading(false);
     if (res?.error) {
       setError("Hibás email cím vagy jelszó.");
-    } else {
+    } else if (res?.ok) {
       router.push("/records");
       router.refresh();
     }
@@ -80,9 +81,7 @@ export default function LoginPage() {
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Belépés...
                 </>
-              ) : (
-                "Belépés"
-              )}
+              ) : "Belépés"}
             </Button>
           </form>
         </CardContent>
