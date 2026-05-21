@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,12 @@ interface EditData {
   quantity: number;
   price: number;
   notes: string;
+  workerId?: string;
+}
+
+interface Worker {
+  id: string;
+  name: string;
 }
 
 interface Props {
@@ -36,14 +42,18 @@ interface Props {
 }
 
 const TYPES = [
-  { value: "CSERE",        label: "Csere",          color: "bg-blue-100 text-blue-700 border-blue-300" },
-  { value: "UJRAINDITAS",  label: "Újraindítás",    color: "bg-green-100 text-green-700 border-green-300" },
-  { value: "UJ_SZERZODES", label: "Új szerződés",   color: "bg-orange-100 text-orange-700 border-orange-300" },
-  { value: "KIEPITES",     label: "Kiépítés",       color: "bg-purple-100 text-purple-700 border-purple-300" },
+  { value: "CSERE",        label: "Csere",          color: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800" },
+  { value: "UJRAINDITAS",  label: "Újraindítás",    color: "bg-green-100 text-green-700 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800" },
+  { value: "UJ_SZERZODES", label: "Új szerződés",   color: "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800" },
+  { value: "KIEPITES",     label: "Kiépítés",       color: "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800" },
 ];
 
-export default function AppointmentFormModal({ prefill, editData, workerId, onClose, onSaved }: Props) {
+export default function AppointmentFormModal({ prefill, editData, workerId: initialWorkerId, onClose, onSaved }: Props) {
   const isEdit = !!editData;
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [selectedWorkerId, setSelectedWorkerId] = useState(
+    editData?.workerId ?? initialWorkerId ?? ""
+  );
   const [type, setType] = useState(editData?.type ?? "CSERE");
   const [date, setDate] = useState(() => {
     if (editData?.date) return new Date(editData.date).toISOString().slice(0, 16);
@@ -66,13 +76,24 @@ export default function AppointmentFormModal({ prefill, editData, workerId, onCl
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    fetch("/api/workers")
+      .then(r => r.json())
+      .then(d => Array.isArray(d) && setWorkers(d));
+  }, []);
+
   async function handleSave() {
     setSaving(true);
     setError("");
     const res = await fetch("/api/appointments", {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: editData?.id, date, endDate, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes, workerId: workerId ?? null }),
+      body: JSON.stringify({
+        id: editData?.id,
+        date, endDate, type, name, phone, address, locationId,
+        quantity, price: parseInt(price) || 0, notes,
+        workerId: selectedWorkerId || null,
+      }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -98,12 +119,26 @@ export default function AppointmentFormModal({ prefill, editData, workerId, onCl
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Worker selector */}
+            <div>
+              <label className="text-sm font-medium">Szerelő</label>
+              <select
+                value={selectedWorkerId}
+                onChange={e => setSelectedWorkerId(e.target.value)}
+                className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">– Nincs megadva –</option>
+                {workers.map(w => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="text-sm font-medium">Időpont</label>
               <div className="flex items-center gap-2 mt-1">
                 <Input type="datetime-local" value={date} onChange={e => {
                   setDate(e.target.value);
-                  // auto-set end to +1h if end hasn't been manually changed past start
                   const start = new Date(e.target.value);
                   const end = new Date(endDate);
                   if (end <= start) {
@@ -111,7 +146,7 @@ export default function AppointmentFormModal({ prefill, editData, workerId, onCl
                     setEndDate(start.toISOString().slice(0, 16));
                   }
                 }} className="flex-1" />
-                <span className="text-slate-400 text-sm flex-shrink-0">–</span>
+                <span className="text-muted-foreground text-sm flex-shrink-0">–</span>
                 <Input type="time" value={endDate.slice(11, 16)} onChange={e => {
                   setEndDate(date.slice(0, 11) + e.target.value + ":00");
                 }} className="w-28" />
@@ -125,7 +160,7 @@ export default function AppointmentFormModal({ prefill, editData, workerId, onCl
                   <button
                     key={t.value}
                     onClick={() => setType(t.value)}
-                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${type === t.value ? t.color + " border-2" : "bg-white border-slate-200 text-slate-600"}`}
+                    className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${type === t.value ? t.color + " border-2" : "bg-card border-border text-muted-foreground"}`}
                   >
                     {t.label}
                   </button>
@@ -176,7 +211,7 @@ export default function AppointmentFormModal({ prefill, editData, workerId, onCl
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">
+              <div className="bg-red-950 border border-red-800 text-red-300 text-sm rounded-lg px-3 py-2">
                 {error}
               </div>
             )}
