@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Upload, X, Phone, Mail, MapPin, Gauge, Loader2, ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
+import { Search, Upload, X, Phone, Mail, MapPin, Gauge, Loader2, ChevronLeft, ChevronRight, CalendarPlus, SlidersHorizontal, ArrowUpDown, User, Tag } from "lucide-react";
 import AppointmentFormModal from "@/components/appointments/AppointmentFormModal";
 
 interface MeroRecord {
@@ -42,9 +42,15 @@ export default function RecordsPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
-  const [search, setSearch] = useState("");
-  const [meroFajta, setMeroFajta] = useState("all");
-  const [ev, setEv] = useState("all");
+  const [nameSearch, setNameSearch] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [lejáratiEv, setLejáratiEv] = useState("all");
+  const [cimSearch, setCimSearch] = useState("");
+  const [keszulekhely, setKeszulekhely] = useState("");
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [selectedTipusok, setSelectedTipusok] = useState<string[]>([]);
+  const [sort, setSort] = useState("nev");
+  const [sortDir, setSortDir] = useState<"asc"|"desc">("asc");
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<MeroRecord | null>(null);
   const [importing, setImporting] = useState(false);
@@ -52,33 +58,45 @@ export default function RecordsPage() {
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [apptTarget, setApptTarget] = useState<MeroRecord | null>(null);
-  const [meroFajtak, setMeroFajtak] = useState<string[]>([]);
-  const [evek, setEvek] = useState<string[]>([]);
+  const [lejáratiEvek, setLejáratiEvek] = useState<number[]>([]);
+  const [tipusok, setTipusok] = useState<string[]>([]);
 
   useEffect(() => {
     fetch("/api/records/meta").then(r => r.json()).then(d => {
-      setMeroFajtak(d.meroFajtak ?? []);
-      setEvek(d.evek ?? []);
+      setLejáratiEvek(d.lejáratiEvek ?? []);
+      setTipusok(d.tipusok ?? []);
     });
   }, []);
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ page: String(page), limit: "50" });
-    if (search) params.set("search", search);
-    if (meroFajta && meroFajta !== "all") params.set("meroFajta", meroFajta);
-    if (ev && ev !== "all") params.set("ev", ev);
+    const params = new URLSearchParams({ page: String(page), limit: "50", sort, sortDir });
+    if (nameSearch) params.set("name", nameSearch);
+    if (cimSearch) params.set("cim", cimSearch);
+    if (keszulekhely) params.set("keszulekhely", keszulekhely);
+    if (globalSearch) params.set("global", globalSearch);
+    if (lejáratiEv !== "all") params.set("lejáratiEv", lejáratiEv);
+    selectedTipusok.forEach(t => params.append("tipus", t));
     const res = await fetch(`/api/records?${params}`);
     const data = await res.json();
     setRecords(data.records ?? []);
     setTotal(data.total ?? 0);
     setPages(data.pages ?? 1);
     setLoading(false);
-  }, [page, search, meroFajta, ev]);
+  }, [page, nameSearch, cimSearch, keszulekhely, globalSearch, lejáratiEv, selectedTipusok, sort, sortDir]);
 
   useEffect(() => { fetch_(); }, [fetch_]);
 
-  useEffect(() => { setPage(1); }, [search, meroFajta, ev]);
+  useEffect(() => { setPage(1); }, [nameSearch, cimSearch, keszulekhely, globalSearch, lejáratiEv, selectedTipusok]);
+
+  function toggleTipus(t: string) {
+    setSelectedTipusok(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  }
+
+  function toggleSort(field: string) {
+    if (sort === field) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSort(field); setSortDir("asc"); }
+  }
 
   const COLUMN_MAP: Record<string, string> = {
     "keszulekhely": "keszulekhely",
@@ -251,42 +269,80 @@ export default function RecordsPage() {
               <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{ width: `${importProgress}%` }} />
             </div>
           )}
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-            <Input
-              className="pl-8 h-9"
-              placeholder="Keresés..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600">
-                <X className="h-4 w-4" />
-              </button>
-            )}
+          {/* Name search + filter/sort buttons */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <User className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+              <Input className="pl-8 h-9" placeholder="Keresés névben..." value={nameSearch} onChange={(e) => setNameSearch(e.target.value)} />
+              {nameSearch && <button onClick={() => setNameSearch("")} className="absolute right-2.5 top-2.5 text-slate-400"><X className="h-4 w-4" /></button>}
+            </div>
+            <Button size="sm" variant={showFilters ? "default" : "outline"} onClick={() => setShowFilters(v => !v)} className="h-9 px-3">
+              <SlidersHorizontal className="h-4 w-4 mr-1" />Szűrők
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => toggleSort(sort)} className="h-9 px-2">
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
           </div>
-          <Select value={meroFajta} onValueChange={(v) => setMeroFajta(v ?? "all")}>
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder="Mérő fajta" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Minden fajta</SelectItem>
-              {meroFajtak.map((f) => (
-                <SelectItem key={f} value={f}>{f}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={ev} onValueChange={(v) => setEv(v ?? "all")}>
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder="Hitelesítés éve" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Minden év</SelectItem>
-              {evek.map((e) => (
-                <SelectItem key={e} value={e}>{e}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          {/* Expandable filters */}
+          {showFilters && (
+            <div className="space-y-2 pt-1">
+              {/* Lejárati év */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 w-20 flex-shrink-0">Lejárati év</span>
+                <Select value={lejáratiEv} onValueChange={(v) => setLejáratiEv(v ?? "all")}>
+                  <SelectTrigger className="h-8 flex-1 text-sm">
+                    <SelectValue placeholder="Mind" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Mind</SelectItem>
+                    {lejáratiEvek.map((e) => (
+                      <SelectItem key={e} value={String(e)}>{e}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Cím */}
+              <div className="relative">
+                <MapPin className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                <Input className="pl-8 h-8 text-sm" placeholder="Cím keresése..." value={cimSearch} onChange={(e) => setCimSearch(e.target.value)} />
+                {cimSearch && <button onClick={() => setCimSearch("")} className="absolute right-2.5 top-2 text-slate-400"><X className="h-4 w-4" /></button>}
+              </div>
+              {/* Készülékhely */}
+              <div className="relative">
+                <Gauge className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                <Input className="pl-8 h-8 text-sm" placeholder="Készülékhely szám..." value={keszulekhely} onChange={(e) => setKeszulekhely(e.target.value)} />
+                {keszulekhely && <button onClick={() => setKeszulekhely("")} className="absolute right-2.5 top-2 text-slate-400"><X className="h-4 w-4" /></button>}
+              </div>
+              {/* Mindenhol */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2 h-4 w-4 text-slate-400" />
+                <Input className="pl-8 h-8 text-sm" placeholder="Keresés mindenhol..." value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} />
+                {globalSearch && <button onClick={() => setGlobalSearch("")} className="absolute right-2.5 top-2 text-slate-400"><X className="h-4 w-4" /></button>}
+              </div>
+              {/* Típus chips */}
+              {tipusok.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-1 mb-1.5">
+                    <Tag className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="text-xs text-slate-500">Típus</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {tipusok.map((t) => (
+                      <button key={t} onClick={() => toggleTipus(t)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                          selectedTipusok.includes(t)
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
+                        }`}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Records */}
