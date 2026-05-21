@@ -27,50 +27,34 @@ const TYPE_LABELS: Record<string, { label: string; color: string }> = {
   EGYEB:   { label: "Egyéb",      color: "bg-slate-100 text-slate-600" },
 };
 
-const DAYS = ["V", "H", "K", "Sze", "Cs", "P", "Szo"];
+const DAYS_LONG = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
 const MONTHS = ["Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December"];
 
-function startOfWeek(d: Date) {
-  const day = d.getDay();
-  const diff = (day === 0 ? -6 : 1) - day;
-  const start = new Date(d);
-  start.setDate(d.getDate() + diff);
-  start.setHours(0, 0, 0, 0);
-  return start;
+function startOfDay(d: Date) {
+  const s = new Date(d);
+  s.setHours(0, 0, 0, 0);
+  return s;
 }
 
 export default function AppointmentsPage() {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const [currentDay, setCurrentDay] = useState(() => startOfDay(new Date()));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState<Appointment | null>(null);
 
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  weekEnd.setHours(23, 59, 59);
+  const dayEnd = new Date(currentDay);
+  dayEnd.setHours(23, 59, 59);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/appointments?from=${weekStart.toISOString()}&to=${weekEnd.toISOString()}`);
+    const res = await fetch(`/api/appointments?from=${currentDay.toISOString()}&to=${dayEnd.toISOString()}`);
     const data = await res.json();
     setAppointments(data);
     setLoading(false);
-  }, [weekStart]);
+  }, [currentDay]);
 
   useEffect(() => { load(); }, [load]);
-
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
-    return d;
-  });
-
-  const dayAppointments = (day: Date) =>
-    appointments.filter((a) => {
-      const d = new Date(a.date);
-      return d.getDate() === day.getDate() && d.getMonth() === day.getMonth() && d.getFullYear() === day.getFullYear();
-    });
 
   const today = new Date();
 
@@ -80,56 +64,60 @@ export default function AppointmentsPage() {
     if (selected?.id === id) setSelected(null);
   }
 
+  const isToday = currentDay.toDateString() === today.toDateString();
+
   return (
     <div className="flex h-full">
       {/* Calendar panel */}
       <div className="flex-1 flex flex-col border-r">
-        {/* Week nav */}
+        {/* Day nav */}
         <div className="flex items-center justify-between px-6 py-4 border-b bg-white">
-          <Button variant="ghost" size="sm" onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d); }}>
+          <Button variant="ghost" size="sm" onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() - 1); setCurrentDay(d); }}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="font-semibold text-slate-700">
-            {MONTHS[weekStart.getMonth()]} {weekStart.getDate()} – {weekEnd.getDate()}, {weekStart.getFullYear()}
-          </h2>
-          <Button variant="ghost" size="sm" onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d); }}>
+          <div className="text-center">
+            <h2 className={`font-semibold ${isToday ? "text-blue-600" : "text-slate-700"}`}>
+              {DAYS_LONG[currentDay.getDay()]}, {currentDay.getFullYear()}. {MONTHS[currentDay.getMonth()].toLowerCase()} {currentDay.getDate()}.
+            </h2>
+            {isToday && <span className="text-xs text-blue-500">Ma</span>}
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() + 1); setCurrentDay(d); }}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Week grid */}
+        {/* Day list */}
         <div className="flex-1 overflow-auto p-4">
           {loading ? (
             <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
+          ) : appointments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+              <CalendarPlus className="h-10 w-10 mb-3" />
+              <p className="text-sm">Nincs időpont erre a napra</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-7 gap-2">
-              {weekDays.map((day, i) => {
-                const isToday = day.toDateString() === today.toDateString();
-                const appts = dayAppointments(day);
-                return (
-                  <div key={i} className="min-h-32">
-                    <div className={`text-center py-1.5 rounded-lg mb-1 text-sm font-medium ${isToday ? "bg-blue-600 text-white" : "text-slate-500"}`}>
-                      <div className="text-xs">{DAYS[i]}</div>
-                      <div className={`text-lg font-bold ${isToday ? "" : "text-slate-800"}`}>{day.getDate()}</div>
-                    </div>
-                    <div className="space-y-1">
-                      {appts.map((a) => {
-                        const t = TYPE_LABELS[a.type] ?? TYPE_LABELS.EGYEB;
-                        return (
-                          <button
-                            key={a.id}
-                            onClick={() => setSelected(a)}
-                            className={`w-full text-left px-2 py-1.5 rounded-md text-xs font-medium ${t.color} ${selected?.id === a.id ? "ring-2 ring-blue-500" : ""}`}
-                          >
-                            <div>{new Date(a.date).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" })}</div>
-                            <div className="truncate">{a.name || t.label}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="space-y-2">
+              {appointments
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((a) => {
+                  const t = TYPE_LABELS[a.type] ?? TYPE_LABELS.EGYEB;
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => setSelected(a)}
+                      className={`w-full text-left px-4 py-3 rounded-lg border ${t.color} ${selected?.id === a.id ? "ring-2 ring-blue-500" : ""}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold">
+                          {new Date(a.date).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                        <Badge className={`${t.color} border-0 text-xs`}>{t.label}</Badge>
+                      </div>
+                      <div className="font-medium text-sm mt-0.5">{a.name || "–"}</div>
+                      {a.address && <div className="text-xs opacity-70 truncate mt-0.5">{a.address}</div>}
+                    </button>
+                  );
+                })}
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +43,7 @@ export default function RecordsPage() {
   const [selected, setSelected] = useState<MeroRecord | null>(null);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [apptTarget, setApptTarget] = useState<MeroRecord | null>(null);
 
   const fetch_ = useCallback(async () => {
@@ -107,13 +108,11 @@ export default function RecordsPage() {
         <div className="p-4 border-b space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="font-semibold text-slate-800">Mérők <span className="text-slate-400 font-normal text-sm">({total})</span></h1>
-            <label className="cursor-pointer">
-              <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
-              <Button size="sm" variant="outline" disabled={importing}>
-                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                <span className="ml-1">Import</span>
-              </Button>
-            </label>
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+            <Button size="sm" variant="outline" disabled={importing} onClick={() => fileInputRef.current?.click()}>
+              {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              <span className="ml-1">Import</span>
+            </Button>
           </div>
           {importMsg && <p className="text-xs text-slate-600">{importMsg}</p>}
           <div className="relative">
