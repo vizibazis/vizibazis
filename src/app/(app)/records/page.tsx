@@ -96,9 +96,8 @@ export default function RecordsPage() {
     return t;
   }
 
-  const tipusGroups = [...new Map(
-    tipusok.map(t => [simplifyTipus(t), simplifyTipus(t)])
-  ).keys()];
+  const CHIP_GROUPS = ["Lakme", "Locsme"];
+  const tipusGroups = CHIP_GROUPS.filter(g => tipusok.some(t => simplifyTipus(t) === g));
 
   function rawTypesForGroup(group: string): string[] {
     return tipusok.filter(t => simplifyTipus(t) === group);
