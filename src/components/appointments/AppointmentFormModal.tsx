@@ -13,8 +13,23 @@ interface Prefill {
   locationId?: string;
 }
 
+interface EditData {
+  id: string;
+  date: string;
+  endDate?: string;
+  type: string;
+  name: string;
+  phone: string;
+  address: string;
+  locationId: string;
+  quantity: number;
+  price: number;
+  notes: string;
+}
+
 interface Props {
   prefill?: Prefill;
+  editData?: EditData;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -26,34 +41,35 @@ const TYPES = [
   { value: "KIEPITES",     label: "Kiépítés",       color: "bg-purple-100 text-purple-700 border-purple-300" },
 ];
 
-export default function AppointmentFormModal({ prefill, onClose, onSaved }: Props) {
-  const [type, setType] = useState("CSERE");
+export default function AppointmentFormModal({ prefill, editData, onClose, onSaved }: Props) {
+  const isEdit = !!editData;
+  const [type, setType] = useState(editData?.type ?? "CSERE");
   const [date, setDate] = useState(() => {
-    const d = new Date();
-    d.setMinutes(0, 0, 0);
+    if (editData?.date) return new Date(editData.date).toISOString().slice(0, 16);
+    const d = new Date(); d.setMinutes(0, 0, 0);
     return d.toISOString().slice(0, 16);
   });
   const [endDate, setEndDate] = useState(() => {
-    const d = new Date();
-    d.setHours(d.getHours() + 1, 0, 0, 0);
+    if (editData?.endDate) return new Date(editData.endDate).toISOString().slice(0, 16);
+    const d = new Date(); d.setHours(d.getHours() + 1, 0, 0, 0);
     return d.toISOString().slice(0, 16);
   });
-  const [name, setName] = useState(prefill?.name ?? "");
-  const [phone, setPhone] = useState(prefill?.phone ?? "");
-  const [address, setAddress] = useState(prefill?.address ?? "");
-  const [locationId, setLocationId] = useState(prefill?.locationId ?? "");
-  const [quantity, setQuantity] = useState(1);
-  const [price, setPrice] = useState("");
-  const [notes, setNotes] = useState("");
+  const [name, setName] = useState(editData?.name ?? prefill?.name ?? "");
+  const [phone, setPhone] = useState(editData?.phone ?? prefill?.phone ?? "");
+  const [address, setAddress] = useState(editData?.address ?? prefill?.address ?? "");
+  const [locationId, setLocationId] = useState(editData?.locationId ?? prefill?.locationId ?? "");
+  const [quantity, setQuantity] = useState(editData?.quantity ?? 1);
+  const [price, setPrice] = useState(editData?.price ? String(editData.price) : "");
+  const [notes, setNotes] = useState(editData?.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   async function handleSave() {
     setSaving(true);
     await fetch("/api/appointments", {
-      method: "POST",
+      method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, endDate, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes }),
+      body: JSON.stringify({ id: editData?.id, date, endDate, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes }),
     });
     setSaving(false);
     setSaved(true);
@@ -64,7 +80,7 @@ export default function AppointmentFormModal({ prefill, onClose, onSaved }: Prop
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Új időpont</DialogTitle>
+          <DialogTitle>{isEdit ? "Időpont szerkesztése" : "Új időpont"}</DialogTitle>
         </DialogHeader>
 
         {saved ? (

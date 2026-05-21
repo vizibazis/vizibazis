@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarPlus, ChevronLeft, ChevronRight, Phone, MapPin, Loader2, Trash2, Edit2 } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Phone, MapPin, Loader2, Trash2, Pencil } from "lucide-react";
 import AppointmentFormModal from "@/components/appointments/AppointmentFormModal";
 
 interface Appointment {
@@ -46,6 +46,7 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<Appointment | null>(null);
   const [selected, setSelected] = useState<Appointment | null>(null);
 
   const dayEnd = new Date(currentDay);
@@ -155,9 +156,14 @@ export default function AppointmentsPage() {
                 </p>
               </div>
               {canEdit && (
-                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => deleteAppt(selected.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => setEditTarget(selected)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => deleteAppt(selected.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
             {selected.phone && (
@@ -194,6 +200,13 @@ export default function AppointmentsPage() {
         <AppointmentFormModal
           onClose={() => setShowForm(false)}
           onSaved={() => { setShowForm(false); load(); }}
+        />
+      )}
+      {editTarget && (
+        <AppointmentFormModal
+          editData={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => { setEditTarget(null); load(); }}
         />
       )}
     </div>

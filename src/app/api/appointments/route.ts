@@ -70,7 +70,7 @@ export async function PUT(req: NextRequest) {
 
   const appointment = await prisma.appointment.update({
     where: { id },
-    data: { ...data, date: new Date(data.date) },
+    data: { ...data, date: new Date(data.date), endDate: data.endDate ? new Date(data.endDate) : null },
   });
 
   return NextResponse.json(appointment);
