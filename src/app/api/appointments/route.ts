@@ -30,6 +30,19 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(appointments);
 }
 
+async function checkOverlap(startTime: Date, endTime: Date, excludeId?: string) {
+  return prisma.appointment.findFirst({
+    where: {
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+      date: { lt: endTime },
+      OR: [
+        { endDate: { gt: startTime } },
+        { endDate: null, date: { gt: new Date(startTime.getTime() - 60 * 60 * 1000) } },
+      ],
+    },
+  });
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,6 +51,11 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const userId = (session.user as { id?: string })?.id;
+
+  const startTime = new Date(body.date);
+  const endTime = body.endDate ? new Date(body.endDate) : new Date(startTime.getTime() + 60 * 60 * 1000);
+  const overlap = await checkOverlap(startTime, endTime);
+  if (overlap) return NextResponse.json({ error: "Ebben az időben már dolgozik a szerelő!" }, { status: 409 });
 
   const appointment = await prisma.appointment.create({
     data: {
@@ -67,6 +85,11 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   const { id, ...data } = body;
   if (!id) return NextResponse.json({ error: "No id" }, { status: 400 });
+
+  const startTime = new Date(data.date);
+  const endTime = data.endDate ? new Date(data.endDate) : new Date(startTime.getTime() + 60 * 60 * 1000);
+  const overlap = await checkOverlap(startTime, endTime, id);
+  if (overlap) return NextResponse.json({ error: "Ebben az időben már dolgozik a szerelő!" }, { status: 409 });
 
   const appointment = await prisma.appointment.update({
     where: { id },

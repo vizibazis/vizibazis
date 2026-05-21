@@ -63,15 +63,22 @@ export default function AppointmentFormModal({ prefill, editData, onClose, onSav
   const [notes, setNotes] = useState(editData?.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSave() {
     setSaving(true);
-    await fetch("/api/appointments", {
+    setError("");
+    const res = await fetch("/api/appointments", {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: editData?.id, date, endDate, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes }),
     });
     setSaving(false);
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error ?? "Hiba történt");
+      return;
+    }
     setSaved(true);
     setTimeout(() => { onSaved(); }, 900);
   }
@@ -167,6 +174,11 @@ export default function AppointmentFormModal({ prefill, editData, onClose, onSav
               </div>
             </div>
 
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">
+                {error}
+              </div>
+            )}
             <div className="flex gap-2 pt-2">
               <Button variant="outline" onClick={onClose} className="flex-1">Mégse</Button>
               <Button onClick={handleSave} disabled={saving} className="flex-1">
