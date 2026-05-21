@@ -151,6 +151,10 @@ export default function RecordsPage() {
           if (key) rec[key] = val;
         }
         if (csaladnev || utonev) rec.nev = [csaladnev, utonev].filter(Boolean).join(" ");
+        if (rec.mobiltelOnuf) {
+          rec.mobil = [rec.mobil, rec.mobiltelOnuf].filter(Boolean).join(", ");
+          rec.mobiltelOnuf = "";
+        }
         return rec;
       });
 
@@ -358,7 +362,6 @@ function RecordDetail({ record, onAppointment }: { record: MeroRecord; onAppoint
       <Section title="Személyes adatok" icon={<Phone className="h-4 w-4" />}>
         <Row label="Telefon" value={record.telefon} type="phone" />
         <Row label="Mobil" value={record.mobil} type="phone" />
-        <Row label="Telefon ONUF" value={record.mobiltelOnuf} type="phone" />
         <Row label="E-mail" value={record.email} type="email" />
       </Section>
 
