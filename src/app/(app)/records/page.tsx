@@ -89,8 +89,31 @@ export default function RecordsPage() {
 
   useEffect(() => { setPage(1); }, [nameSearch, cimSearch, keszulekhely, globalSearch, lejáratiEv, selectedTipusok]);
 
-  function toggleTipus(t: string) {
-    setSelectedTipusok(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  function simplifyTipus(t: string): string {
+    const l = t.toLowerCase();
+    if (l.includes("lakás mellékmérő")) return "Lakme";
+    if (l.includes("locsme") || l.includes("locsolási")) return "Locsme";
+    return t;
+  }
+
+  const tipusGroups = [...new Map(
+    tipusok.map(t => [simplifyTipus(t), simplifyTipus(t)])
+  ).keys()];
+
+  function rawTypesForGroup(group: string): string[] {
+    return tipusok.filter(t => simplifyTipus(t) === group);
+  }
+
+  function toggleTipus(group: string) {
+    const raws = rawTypesForGroup(group);
+    setSelectedTipusok(prev => {
+      const hasAll = raws.every(r => prev.includes(r));
+      return hasAll ? prev.filter(x => !raws.includes(x)) : [...new Set([...prev, ...raws])];
+    });
+  }
+
+  function isTipusSelected(group: string): boolean {
+    return rawTypesForGroup(group).some(r => selectedTipusok.includes(r));
   }
 
   function toggleSort(field: string) {
@@ -328,14 +351,14 @@ export default function RecordsPage() {
                     <span className="text-xs text-slate-500">Típus</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {tipusok.map((t) => (
-                      <button key={t} onClick={() => toggleTipus(t)}
+                    {tipusGroups.map((g) => (
+                      <button key={g} onClick={() => toggleTipus(g)}
                         className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                          selectedTipusok.includes(t)
+                          isTipusSelected(g)
                             ? "bg-blue-600 text-white border-blue-600"
                             : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
                         }`}>
-                        {t}
+                        {g}
                       </button>
                     ))}
                   </div>
