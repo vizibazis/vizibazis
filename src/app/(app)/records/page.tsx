@@ -44,6 +44,7 @@ export default function RecordsPage() {
   const [pages, setPages] = useState(1);
   const [search, setSearch] = useState("");
   const [meroFajta, setMeroFajta] = useState("all");
+  const [ev, setEv] = useState("all");
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<MeroRecord | null>(null);
   const [importing, setImporting] = useState(false);
@@ -51,40 +52,73 @@ export default function RecordsPage() {
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [apptTarget, setApptTarget] = useState<MeroRecord | null>(null);
+  const [meroFajtak, setMeroFajtak] = useState<string[]>([]);
+  const [evek, setEvek] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/records/meta").then(r => r.json()).then(d => {
+      setMeroFajtak(d.meroFajtak ?? []);
+      setEvek(d.evek ?? []);
+    });
+  }, []);
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: "50" });
     if (search) params.set("search", search);
     if (meroFajta && meroFajta !== "all") params.set("meroFajta", meroFajta);
+    if (ev && ev !== "all") params.set("ev", ev);
     const res = await fetch(`/api/records?${params}`);
     const data = await res.json();
     setRecords(data.records ?? []);
     setTotal(data.total ?? 0);
     setPages(data.pages ?? 1);
     setLoading(false);
-  }, [page, search, meroFajta]);
+  }, [page, search, meroFajta, ev]);
 
   useEffect(() => { fetch_(); }, [fetch_]);
 
-  useEffect(() => { setPage(1); }, [search, meroFajta]);
+  useEffect(() => { setPage(1); }, [search, meroFajta, ev]);
 
   const COLUMN_MAP: Record<string, string> = {
+    // Készülékhely
     "készülékhely": "keszulekhely", "keszulekhely": "keszulekhely",
-    "név": "nev", "nev": "nev", "name": "nev",
-    "telefon": "telefon", "mobil": "mobil",
-    "e-mail": "email", "email": "email",
+    "fogyasztási hely": "keszulekhely", "fogyasztasi hely": "keszulekhely",
+    // Telefon
+    "telefon": "telefon", "telefon standard": "telefon",
+    // Mobil
+    "mobil": "mobil", "mobil standard": "mobil",
+    // Email
+    "e-mail": "email", "email": "email", "email standard": "email",
+    // Mobiltel ONUF
+    "mobiltelefon onuf": "mobiltelOnuf", "mobiltel. (onuf)": "mobiltelOnuf", "mobiltelonuf": "mobiltelOnuf",
+    // Irányítószám
     "ir.szám": "irszam", "irszám": "irszam", "irszam": "irszam",
+    "fh irszám": "irszam", "fh irszam": "irszam",
+    // Helység
     "helység": "helyseg", "helyseg": "helyseg",
-    "utca": "utca", "hsz.": "hazszam", "hazszam": "hazszam",
+    "fh helység": "helyseg", "fh helyseg": "helyseg",
+    // Utca
+    "utca": "utca", "fh utca": "utca",
+    // Házszám
+    "hsz.": "hazszam", "hazszam": "hazszam", "házszám": "hazszam",
+    "fh házszám": "hazszam", "fh hazszam": "hazszam",
+    // Épület
     "épület": "epulet", "epulet": "epulet",
+    "fh épület": "epulet", "fh epulet": "epulet",
+    // Lépcsőház
     "lépcsőház": "lepcsohaz", "lepcsohaz": "lepcsohaz",
-    "emelet": "emelet", "ajtó": "ajto", "ajto": "ajto",
+    "fh lépcsőház": "lepcsohaz", "fh lepcsohaz": "lepcsohaz",
+    // Emelet
+    "emelet": "emelet", "fh emelet": "emelet",
+    // Ajtó
+    "ajtó": "ajto", "ajto": "ajto", "fh ajtó": "ajto",
+    // Mérő adatok
     "mérő fajta": "meroFajta", "merofajta": "meroFajta",
     "gyári szám": "gyariSzam", "gyariszam": "gyariSzam",
     "sorszám": "sorszam", "sorszam": "sorszam",
     "hitelesítés éve": "hitelesitesEve", "hitelesiteseve": "hitelesitesEve",
-    "átmérő (dn)": "atmero", "atmero": "atmero",
+    "átmérő (dn)": "atmero", "átmérő": "atmero", "atmero": "atmero",
     "főmérő kh": "fomeroKh", "fomerokh": "fomeroKh",
     "anyagszám megnevezése": "anyagszamMegnevezese",
   };
@@ -107,7 +141,10 @@ export default function RecordsPage() {
 
       const batchId = `import_${Date.now()}`;
       const BATCH = 200;
-      const unrecognized = new Set<string>();
+      function normalizeCol(k: string) {
+        return k.toLowerCase().replace(/_/g, " ").trim().replace(/\s+/g, " ");
+      }
+
       const mapped = rows.map((row) => {
         const rec: Record<string, string> = {
           importBatch: batchId,
@@ -117,20 +154,19 @@ export default function RecordsPage() {
           gyariSzam: "", sorszam: "", hitelesitesEve: "", atmero: "",
           fomeroKh: "", anyagszamMegnevezese: "",
         };
+        let csaladnev = "";
+        let utonev = "";
         for (const [k, v] of Object.entries(row)) {
-          const normalized = k.toLowerCase().trim().replace(/\s+/g, " ");
-          const key = COLUMN_MAP[normalized];
-          if (key) rec[key] = String(v ?? "").trim();
-          else unrecognized.add(`"${k}"`);
+          const n = normalizeCol(k);
+          const val = String(v ?? "").trim();
+          if (n === "családnév" || n === "csaladnev") { csaladnev = val; continue; }
+          if (n === "utónév" || n === "utonev") { utonev = val; continue; }
+          const key = COLUMN_MAP[n];
+          if (key) rec[key] = val;
         }
+        if (csaladnev || utonev) rec.nev = [csaladnev, utonev].filter(Boolean).join(" ");
         return rec;
       });
-
-      if (unrecognized.size > 0) {
-        console.log("Ismeretlen oszlopok:", [...unrecognized].join(", "));
-        setImportMsg(`Figyelem – ismeretlen oszlopok: ${[...unrecognized].join(", ")}`);
-        await new Promise(r => setTimeout(r, 3000));
-      }
 
       let imported = 0;
       for (let i = 0; i < mapped.length; i += BATCH) {
@@ -217,8 +253,20 @@ export default function RecordsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Minden fajta</SelectItem>
-              <SelectItem value="hideg">Hidegvíz</SelectItem>
-              <SelectItem value="meleg">Melegvíz</SelectItem>
+              {meroFajtak.map((f) => (
+                <SelectItem key={f} value={f}>{f}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={ev} onValueChange={(v) => setEv(v ?? "all")}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Hitelesítés éve" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Minden év</SelectItem>
+              {evek.map((e) => (
+                <SelectItem key={e} value={e}>{e}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
