@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,9 @@ interface MeroRecord {
 }
 
 export default function RecordsPage() {
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string })?.role ?? "READER";
+  const canEdit = role === "ADMIN" || role === "EDITOR";
   const [records, setRecords] = useState<MeroRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -108,11 +112,15 @@ export default function RecordsPage() {
         <div className="p-4 border-b space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="font-semibold text-slate-800">Mérők <span className="text-slate-400 font-normal text-sm">({total})</span></h1>
-            <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
-            <Button size="sm" variant="outline" disabled={importing} onClick={() => fileInputRef.current?.click()}>
-              {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              <span className="ml-1">Import</span>
-            </Button>
+            {canEdit && (
+              <>
+                <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+                <Button size="sm" variant="outline" disabled={importing} onClick={() => fileInputRef.current?.click()}>
+                  {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  <span className="ml-1">Import</span>
+                </Button>
+              </>
+            )}
           </div>
           {importMsg && <p className="text-xs text-slate-600">{importMsg}</p>}
           <div className="relative">

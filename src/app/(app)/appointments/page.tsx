@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +38,9 @@ function startOfDay(d: Date) {
 }
 
 export default function AppointmentsPage() {
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string })?.role ?? "READER";
+  const canEdit = role === "ADMIN" || role === "EDITOR";
   const [currentDay, setCurrentDay] = useState(() => startOfDay(new Date()));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,12 +127,14 @@ export default function AppointmentsPage() {
         </div>
 
         {/* New button */}
-        <div className="p-4 border-t bg-white">
-          <Button onClick={() => setShowForm(true)} className="w-full">
-            <CalendarPlus className="h-4 w-4 mr-2" />
-            Új időpont
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="p-4 border-t bg-white">
+            <Button onClick={() => setShowForm(true)} className="w-full">
+              <CalendarPlus className="h-4 w-4 mr-2" />
+              Új időpont
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Detail panel */}
@@ -145,9 +151,11 @@ export default function AppointmentsPage() {
                   {new Date(selected.date).toLocaleString("hu-HU", { dateStyle: "long", timeStyle: "short" })}
                 </p>
               </div>
-              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => deleteAppt(selected.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {canEdit && (
+                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => deleteAppt(selected.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
             {selected.phone && (
               <a href={`tel:${selected.phone}`} className="flex items-center gap-2 text-sm text-green-600">

@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const role = (session.user as { role?: string })?.role;
+  if (role === "READER") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const userId = (session.user as { id?: string })?.id;
@@ -58,6 +60,8 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const role = (session.user as { role?: string })?.role;
+  if (role === "READER") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const { id, ...data } = body;
@@ -74,6 +78,8 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const role = (session.user as { role?: string })?.role;
+  if (role === "READER") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
