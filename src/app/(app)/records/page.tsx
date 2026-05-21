@@ -85,7 +85,7 @@ export default function RecordsPage() {
     "telefon": "telefon", "telefon standard": "telefon",
     "mobil": "mobil", "mobil standard": "mobil",
     "e-mail": "email", "email": "email", "email standard": "email",
-    "mobiltelefon onuf": "mobiltelOnuf", "mobiltel. (onuf)": "mobiltelOnuf",
+    "mobiltelefon onuf": "mobiltelOnuf", "telefon onuf": "mobiltelOnuf", "mobiltel. (onuf)": "mobiltelOnuf",
     "ir.szam": "irszam", "irszam": "irszam", "fh irszam": "irszam",
     "helyseg": "helyseg", "fh helyseg": "helyseg",
     "utca": "utca", "fh utca": "utca",
@@ -358,6 +358,7 @@ function RecordDetail({ record, onAppointment }: { record: MeroRecord; onAppoint
       <Section title="Személyes adatok" icon={<Phone className="h-4 w-4" />}>
         <Row label="Telefon" value={record.telefon} type="phone" />
         <Row label="Mobil" value={record.mobil} type="phone" />
+        <Row label="Telefon ONUF" value={record.mobiltelOnuf} type="phone" />
         <Row label="E-mail" value={record.email} type="email" />
       </Section>
 
