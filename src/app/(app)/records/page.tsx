@@ -83,7 +83,6 @@ export default function RecordsPage() {
   const COLUMN_MAP: Record<string, string> = {
     // Készülékhely
     "készülékhely": "keszulekhely", "keszulekhely": "keszulekhely",
-    "fogyasztási hely": "keszulekhely", "fogyasztasi hely": "keszulekhely",
     // Telefon
     "telefon": "telefon", "telefon standard": "telefon",
     // Mobil
@@ -142,7 +141,11 @@ export default function RecordsPage() {
       const batchId = `import_${Date.now()}`;
       const BATCH = 200;
       function normalizeCol(k: string) {
-        return k.normalize("NFC").toLowerCase().replace(/_/g, " ").trim().replace(/\s+/g, " ");
+        return k.normalize("NFC").toLowerCase()
+          .replace(/ /g, " ")
+          .replace(/_/g, " ")
+          .trim()
+          .replace(/\s+/g, " ");
       }
 
       const mapped = rows.map((row) => {
@@ -367,7 +370,6 @@ function RecordDetail({ record, onAppointment }: { record: MeroRecord; onAppoint
             <div>
               <h2 className="text-xl font-bold text-slate-900">{record.nev || "Ismeretlen"}</h2>
               <p className={`text-sm font-medium mt-1 ${meroColor}`}>{record.meroFajta}</p>
-              <p className="text-sm text-slate-500">KH: {record.fomeroKh}</p>
             </div>
             <Button onClick={onAppointment} size="sm">
               <CalendarPlus className="h-4 w-4 mr-1" />
@@ -386,16 +388,15 @@ function RecordDetail({ record, onAppointment }: { record: MeroRecord; onAppoint
 
       {/* Location */}
       <Section title="Helyszín" icon={<MapPin className="h-4 w-4" />}>
-        <Row label="Készülékhely" value={record.keszulekhely} />
         <Row label="Cím" value={cim} />
         <Row label="Irányítószám" value={record.irszam} />
       </Section>
 
       {/* Meter */}
       <Section title="Mérő adatok" icon={<Gauge className="h-4 w-4" />}>
+        <Row label="Készülékhely" value={record.keszulekhely} />
         <Row label="Mérő fajta" value={record.meroFajta} highlight={meroColor} />
         <Row label="Gyári szám" value={record.gyariSzam} />
-        <Row label="Sorszám" value={record.sorszam} />
         <Row label="Hitelesítés éve" value={record.hitelesitesEve} />
         <Row label="Átmérő (DN)" value={record.atmero} />
         <Row label="Típus" value={record.anyagszamMegnevezese} />
