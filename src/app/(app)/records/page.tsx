@@ -142,7 +142,7 @@ export default function RecordsPage() {
       const batchId = `import_${Date.now()}`;
       const BATCH = 200;
       function normalizeCol(k: string) {
-        return k.toLowerCase().replace(/_/g, " ").trim().replace(/\s+/g, " ");
+        return k.normalize("NFC").toLowerCase().replace(/_/g, " ").trim().replace(/\s+/g, " ");
       }
 
       const mapped = rows.map((row) => {
@@ -167,6 +167,14 @@ export default function RecordsPage() {
         if (csaladnev || utonev) rec.nev = [csaladnev, utonev].filter(Boolean).join(" ");
         return rec;
       });
+
+      // Debug: show first record's filled fields
+      const first = mapped[0];
+      const filled = Object.entries(first).filter(([k, v]) => v && k !== "importBatch").map(([k]) => k);
+      console.log("Első rekord kitöltött mezői:", filled.join(", "));
+      console.log("Első rekord:", first);
+      setImportMsg(`Debug: ${filled.length} mező töltött az első rekordban: ${filled.join(", ")}`);
+      await new Promise(r => setTimeout(r, 5000));
 
       let imported = 0;
       for (let i = 0; i < mapped.length; i += BATCH) {
