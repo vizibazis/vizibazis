@@ -107,6 +107,7 @@ export default function RecordsPage() {
 
       const batchId = `import_${Date.now()}`;
       const BATCH = 200;
+      const unrecognized = new Set<string>();
       const mapped = rows.map((row) => {
         const rec: Record<string, string> = {
           importBatch: batchId,
@@ -117,11 +118,19 @@ export default function RecordsPage() {
           fomeroKh: "", anyagszamMegnevezese: "",
         };
         for (const [k, v] of Object.entries(row)) {
-          const key = COLUMN_MAP[k.toLowerCase().trim().replace(/\s+/g, " ")];
+          const normalized = k.toLowerCase().trim().replace(/\s+/g, " ");
+          const key = COLUMN_MAP[normalized];
           if (key) rec[key] = String(v ?? "").trim();
+          else unrecognized.add(`"${k}"`);
         }
         return rec;
       });
+
+      if (unrecognized.size > 0) {
+        console.log("Ismeretlen oszlopok:", [...unrecognized].join(", "));
+        setImportMsg(`Figyelem – ismeretlen oszlopok: ${[...unrecognized].join(", ")}`);
+        await new Promise(r => setTimeout(r, 3000));
+      }
 
       let imported = 0;
       for (let i = 0; i < mapped.length; i += BATCH) {
