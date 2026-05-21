@@ -30,6 +30,7 @@ interface EditData {
 interface Props {
   prefill?: Prefill;
   editData?: EditData;
+  workerId?: string;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -41,7 +42,7 @@ const TYPES = [
   { value: "KIEPITES",     label: "Kiépítés",       color: "bg-purple-100 text-purple-700 border-purple-300" },
 ];
 
-export default function AppointmentFormModal({ prefill, editData, onClose, onSaved }: Props) {
+export default function AppointmentFormModal({ prefill, editData, workerId, onClose, onSaved }: Props) {
   const isEdit = !!editData;
   const [type, setType] = useState(editData?.type ?? "CSERE");
   const [date, setDate] = useState(() => {
@@ -71,7 +72,7 @@ export default function AppointmentFormModal({ prefill, editData, onClose, onSav
     const res = await fetch("/api/appointments", {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: editData?.id, date, endDate, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes }),
+      body: JSON.stringify({ id: editData?.id, date, endDate, type, name, phone, address, locationId, quantity, price: parseInt(price) || 0, notes, workerId: workerId ?? null }),
     });
     setSaving(false);
     if (!res.ok) {

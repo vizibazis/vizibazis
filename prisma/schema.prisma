@@ -92,6 +92,13 @@ model MeroRecord {
   @@index([importBatch])
 }
 
+model Worker {
+  id           String        @id @default(cuid())
+  name         String
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]
+}
+
 model Appointment {
   id         String          @id @default(cuid())
   date       DateTime
@@ -107,11 +114,14 @@ model Appointment {
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
   createdBy  String?
+  workerId   String?
 
-  user User? @relation(fields: [createdBy], references: [id])
+  user   User?   @relation(fields: [createdBy], references: [id])
+  worker Worker? @relation(fields: [workerId], references: [id])
 
   @@index([date])
   @@index([createdBy])
+  @@index([workerId])
 }
 
 enum AppointmentType {

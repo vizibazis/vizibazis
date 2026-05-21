@@ -1,7 +1,5 @@
 export const dynamic = "force-dynamic";
 
-
-
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,6 +11,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const from = searchParams.get("from");
   const to = searchParams.get("to");
+  const workerId = searchParams.get("workerId");
 
   const where: Record<string, unknown> = {};
   if (from || to) {
@@ -20,6 +19,7 @@ export async function GET(req: NextRequest) {
     if (from) (where.date as Record<string, unknown>).gte = new Date(from);
     if (to) (where.date as Record<string, unknown>).lte = new Date(to);
   }
+  if (workerId) where.workerId = workerId;
 
   const appointments = await prisma.appointment.findMany({
     where,
@@ -30,10 +30,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(appointments);
 }
 
-async function checkOverlap(startTime: Date, endTime: Date, excludeId?: string) {
+async function checkOverlap(startTime: Date, endTime: Date, workerId?: string, excludeId?: string) {
   return prisma.appointment.findFirst({
     where: {
       ...(excludeId ? { id: { not: excludeId } } : {}),
+      ...(workerId ? { workerId } : {}),
       date: { lt: endTime },
       OR: [
         { endDate: { gt: startTime } },
@@ -54,14 +55,14 @@ export async function POST(req: NextRequest) {
 
   const startTime = new Date(body.date);
   const endTime = body.endDate ? new Date(body.endDate) : new Date(startTime.getTime() + 60 * 60 * 1000);
-  const overlap = await checkOverlap(startTime, endTime);
+  const overlap = await checkOverlap(startTime, endTime, body.workerId ?? undefined);
   if (overlap) return NextResponse.json({ error: "Ebben az időben már dolgozik a szerelő!" }, { status: 409 });
 
   const appointment = await prisma.appointment.create({
     data: {
       date: new Date(body.date),
       endDate: body.endDate ? new Date(body.endDate) : null,
-      type: body.type ?? "CSERE", // AppointmentType enum value
+      type: body.type ?? "CSERE",
       name: body.name ?? "",
       phone: body.phone ?? "",
       address: body.address ?? "",
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
       price: body.price ?? 0,
       notes: body.notes ?? "",
       createdBy: userId,
+      workerId: body.workerId ?? null,
     },
   });
 
@@ -88,7 +90,7 @@ export async function PUT(req: NextRequest) {
 
   const startTime = new Date(data.date);
   const endTime = data.endDate ? new Date(data.endDate) : new Date(startTime.getTime() + 60 * 60 * 1000);
-  const overlap = await checkOverlap(startTime, endTime, id);
+  const overlap = await checkOverlap(startTime, endTime, data.workerId ?? undefined, id);
   if (overlap) return NextResponse.json({ error: "Ebben az időben már dolgozik a szerelő!" }, { status: 409 });
 
   const appointment = await prisma.appointment.update({

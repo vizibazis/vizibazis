@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import WorkerNav from "./WorkerNav";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -59,6 +60,8 @@ export default function AppShell({ children, user }: AppShellProps) {
               </div>
             </Link>
           ))}
+
+          {pathname.startsWith("/appointments") && <WorkerNav />}
 
           {user.role === "ADMIN" && (
             <Link href="/admin">
