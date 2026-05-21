@@ -23,6 +23,11 @@ interface ApptStats {
   avgPrice: number;
 }
 
+interface Worker {
+  id: string;
+  name: string;
+}
+
 const TYPE_LABELS: Record<string, string> = {
   CSERE: "Csere", UJRAINDITAS: "Újraindítás", UJ_SZERZODES: "Új szerződés", KIEPITES: "Kiépítés"
 };
@@ -32,6 +37,14 @@ export default function StatisticsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [apptStats, setApptStats] = useState<ApptStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [selectedWorker, setSelectedWorker] = useState<string>("");
+
+  useEffect(() => {
+    fetch("/api/workers")
+      .then(r => r.json())
+      .then(d => Array.isArray(d) && setWorkers(d));
+  }, []);
 
   useEffect(() => {
     if (tab === "lista") {
@@ -41,30 +54,48 @@ export default function StatisticsPage() {
         .then(d => { setStats(d); setLoading(false); });
     } else {
       setLoading(true);
-      fetch("/api/statistics/appointments")
+      const url = selectedWorker
+        ? `/api/statistics/appointments?workerId=${selectedWorker}`
+        : "/api/statistics/appointments";
+      fetch(url)
         .then(r => r.json())
         .then(d => { setApptStats(d); setLoading(false); });
     }
-  }, [tab]);
+  }, [tab, selectedWorker]);
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
-      {/* Tab selector */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
-        <button
-          onClick={() => setTab("lista")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "lista" ? "bg-white shadow text-slate-900" : "text-slate-600 hover:text-slate-900"}`}
-        >
-          <BarChart2 className="h-4 w-4" />
-          Lista statisztika
-        </button>
-        <button
-          onClick={() => setTab("hopto")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "hopto" ? "bg-white shadow text-slate-900" : "text-slate-600 hover:text-slate-900"}`}
-        >
-          <CalendarClock className="h-4 w-4" />
-          HopTO statisztika
-        </button>
+      {/* Tab selector + worker dropdown */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+          <button
+            onClick={() => setTab("lista")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "lista" ? "bg-white shadow text-slate-900" : "text-slate-600 hover:text-slate-900"}`}
+          >
+            <BarChart2 className="h-4 w-4" />
+            Lista statisztika
+          </button>
+          <button
+            onClick={() => setTab("hopto")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "hopto" ? "bg-white shadow text-slate-900" : "text-slate-600 hover:text-slate-900"}`}
+          >
+            <CalendarClock className="h-4 w-4" />
+            HopTO statisztika
+          </button>
+        </div>
+
+        {tab === "hopto" && workers.length > 0 && (
+          <select
+            value={selectedWorker}
+            onChange={e => setSelectedWorker(e.target.value)}
+            className="px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          >
+            <option value="">Összes szerelő</option>
+            {workers.map(w => (
+              <option key={w.id} value={w.id}>{w.name}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {loading ? (
