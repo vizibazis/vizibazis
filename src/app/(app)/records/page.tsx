@@ -343,7 +343,7 @@ export default function RecordsPage() {
                 {globalSearch && <button onClick={() => setGlobalSearch("")} className="absolute right-2.5 top-2 text-slate-400"><X className="h-4 w-4" /></button>}
               </div>
               {/* Típus chips */}
-              {tipusok.length > 0 && (
+              {tipusGroups.length > 0 && (
                 <div>
                   <div className="flex items-center gap-1 mb-1.5">
                     <Tag className="h-3.5 w-3.5 text-slate-400" />
