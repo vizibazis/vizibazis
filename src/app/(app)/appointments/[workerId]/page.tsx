@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type RefObject } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -64,7 +64,7 @@ for (let h = START_HOUR; h < END_HOUR; h++) {
 }
 slots.push(`${String(END_HOUR).padStart(2, "0")}:00`);
 
-function CurrentTimeLine({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElement | null> }) {
+function CurrentTimeLine({ scrollRef }: { scrollRef: RefObject<HTMLDivElement> }) {
   const [top, setTop] = useState<number | null>(null);
 
   useEffect(() => {
