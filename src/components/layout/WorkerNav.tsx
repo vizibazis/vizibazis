@@ -25,7 +25,7 @@ export default function WorkerNav() {
 
   return (
     <div className="mt-1">
-      <p className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Szerelők</p>
+      <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Szerelők</p>
       <div className="space-y-0.5">
         {workers.map(w => (
           <Link key={w.id} href={`/appointments/${w.id}`}>
@@ -33,8 +33,8 @@ export default function WorkerNav() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 pathname === `/appointments/${w.id}`
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  ? "bg-blue-950 text-blue-300"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <HardHat className="h-4 w-4 flex-shrink-0" />
