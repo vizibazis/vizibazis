@@ -7,6 +7,15 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Auto-seed workers if none exist yet
+  const count = await prisma.worker.count();
+  if (count === 0) {
+    for (let i = 1; i <= 10; i++) {
+      await prisma.worker.create({ data: { name: `Szerelő${i}` } });
+    }
+  }
+
   const workers = await prisma.worker.findMany({
     select: { id: true, name: true },
     orderBy: { name: "asc" },
