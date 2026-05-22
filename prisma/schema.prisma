@@ -95,6 +95,7 @@ model MeroRecord {
 model Worker {
   id           String        @id @default(cuid())
   name         String
+  email        String        @default("")
   createdAt    DateTime      @default(now())
   appointments Appointment[]
 }
