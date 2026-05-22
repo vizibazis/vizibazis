@@ -49,6 +49,7 @@ export default function RecordsPage() {
   const [keszulekhely, setKeszulekhely] = useState("");
   const [globalSearch, setGlobalSearch] = useState("");
   const [selectedTipusok, setSelectedTipusok] = useState<string[]>([]);
+  const [lakmeFilter, setLakmeFilter] = useState(false);
   const [sort, setSort] = useState("nev");
   const [sortDir, setSortDir] = useState<"asc"|"desc">("asc");
   const [loading, setLoading] = useState(true);
@@ -77,17 +78,18 @@ export default function RecordsPage() {
     if (globalSearch) params.set("global", globalSearch);
     if (lejáratiEv !== "all") params.set("lejáratiEv", lejáratiEv);
     selectedTipusok.forEach(t => params.append("tipus", t));
+    if (lakmeFilter) params.set("lakme", "1");
     const res = await fetch(`/api/records?${params}`);
     const data = await res.json();
     setRecords(data.records ?? []);
     setTotal(data.total ?? 0);
     setPages(data.pages ?? 1);
     setLoading(false);
-  }, [page, nameSearch, cimSearch, keszulekhely, globalSearch, lejáratiEv, selectedTipusok, sort, sortDir]);
+  }, [page, nameSearch, cimSearch, keszulekhely, globalSearch, lejáratiEv, selectedTipusok, lakmeFilter, sort, sortDir]);
 
   useEffect(() => { fetch_(); }, [fetch_]);
 
-  useEffect(() => { setPage(1); }, [nameSearch, cimSearch, keszulekhely, globalSearch, lejáratiEv, selectedTipusok]);
+  useEffect(() => { setPage(1); }, [nameSearch, cimSearch, keszulekhely, globalSearch, lejáratiEv, selectedTipusok, lakmeFilter]);
 
   function simplifyTipus(t: string): string {
     const l = t.toLowerCase();
@@ -343,26 +345,32 @@ export default function RecordsPage() {
                 {globalSearch && <button onClick={() => setGlobalSearch("")} className="absolute right-2.5 top-2 text-muted-foreground"><X className="h-4 w-4" /></button>}
               </div>
               {/* Típus chips */}
-              {tipusGroups.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1 mb-1.5">
-                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Típus</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {tipusGroups.map((g) => (
-                      <button key={g} onClick={() => toggleTipus(g)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                          isTipusSelected(g)
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-card text-muted-foreground border-border hover:border-blue-400"
-                        }`}>
-                        {g}
-                      </button>
-                    ))}
-                  </div>
+              <div>
+                <div className="flex items-center gap-1 mb-1.5">
+                  <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Típus</span>
                 </div>
-              )}
+                <div className="flex flex-wrap gap-1.5">
+                  <button onClick={() => setLakmeFilter(v => !v)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      lakmeFilter
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-card text-muted-foreground border-border hover:border-blue-400"
+                    }`}>
+                    Lakme
+                  </button>
+                  {tipusGroups.map((g) => (
+                    <button key={g} onClick={() => toggleTipus(g)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        isTipusSelected(g)
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "bg-card text-muted-foreground border-border hover:border-blue-400"
+                      }`}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>

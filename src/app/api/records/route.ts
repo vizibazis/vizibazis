@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
   const global = searchParams.get("global") ?? "";
   const lejáratiEv = searchParams.get("lejáratiEv") ?? "";
   const tipusok = searchParams.getAll("tipus");
+  const lakme = searchParams.get("lakme") === "1";
   const sort = searchParams.get("sort") ?? "nev";
   const sortDir = searchParams.get("sortDir") === "desc" ? "desc" : "asc";
   const page = parseInt(searchParams.get("page") ?? "1");
@@ -47,6 +48,7 @@ export async function GET(req: NextRequest) {
   });
   if (lejáratiEv) AND.push({ hitelesitesEve: String(parseInt(lejáratiEv) - 8) });
   if (tipusok.length > 0) AND.push({ anyagszamMegnevezese: { in: tipusok } });
+  if (lakme) AND.push({ meroFajta: { contains: "Lakás", mode: "insensitive" } });
 
   const where = AND.length > 0 ? { AND } : {};
 
