@@ -7,7 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const workers = await prisma.worker.findMany({ orderBy: { name: "asc" } });
+  const workers = await prisma.worker.findMany({
+    select: { id: true, name: true, email: true },
+    orderBy: { name: "asc" },
+  });
   return NextResponse.json(workers);
 }
 
