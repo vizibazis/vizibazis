@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "RESEND_API_KEY nincs beállítva" }, { status: 500 });
 
-  const recipientEmail = process.env.DAILY_CLOSE_EMAIL ?? "dobos.tamas@nemos.eu";
+  const recipientEmail = process.env.DAILY_CLOSE_EMAIL ?? "82wm6dhf4t@privaterelay.appleid.com";
 
   const workerData = workers.map(worker => ({
     name: worker.name,
