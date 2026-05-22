@@ -91,8 +91,8 @@ export default function RecordsPage() {
 
   function simplifyTipus(t: string): string {
     const l = t.toLowerCase();
-    if (l.includes("lakás mellékmérő")) return "Lakme";
     if (l.includes("locsme") || l.includes("locsolási")) return "Locsme";
+    if (l.includes("lakás")) return "Lakme";
     return t;
   }
 
