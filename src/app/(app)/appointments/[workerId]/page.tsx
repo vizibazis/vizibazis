@@ -64,7 +64,7 @@ for (let h = START_HOUR; h < END_HOUR; h++) {
 }
 slots.push(`${String(END_HOUR).padStart(2, "0")}:00`);
 
-function CurrentTimeLine({ scrollRef }: { scrollRef: RefObject<HTMLDivElement> }) {
+function CurrentTimeLine({ scrollRef }: { scrollRef: RefObject<HTMLDivElement | null> }) {
   const [top, setTop] = useState<number | null>(null);
 
   useEffect(() => {
